@@ -19,7 +19,7 @@ export default async function PlansPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="field-label">Services</p>
-          <h1 className="font-serif text-4xl md:text-5xl">Plans</h1>
+          <h1 className="font-serif text-4xl tracking-tight md:text-5xl">Plans</h1>
         </div>
         {session.role === "director" ? (
           <Link href="/plans/new" className="btn btn-primary">

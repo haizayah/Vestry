@@ -15,7 +15,7 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-xl space-y-6">
       <div>
         <p className="field-label">Account</p>
-        <h1 className="font-serif text-4xl">Settings</h1>
+        <h1 className="font-serif text-4xl tracking-tight">Settings</h1>
       </div>
 
       <section className="paper-card rounded-3xl p-6">

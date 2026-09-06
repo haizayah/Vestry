@@ -23,7 +23,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="field-label">{formatPlanDate(plan.date)}</p>
-          <h1 className="font-serif text-4xl md:text-5xl">{plan.name}</h1>
+          <h1 className="font-serif text-4xl tracking-tight md:text-5xl">{plan.name}</h1>
           <p className="mt-2 text-ink-soft">
             {plan.serviceTime} · {ready.ready} of {ready.total} songs have rehearsal media
           </p>

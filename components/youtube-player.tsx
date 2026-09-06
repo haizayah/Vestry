@@ -11,7 +11,7 @@ export function YouTubePlayer({
   if (!embed) return null;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-sage-deep shadow-[0_24px_50px_-32px_rgba(28,25,20,0.55)]">
+    <div className="overflow-hidden rounded-2xl border border-line bg-wine-deep shadow-[0_24px_50px_-32px_rgba(28,25,20,0.55)]">
       <div className="relative aspect-video">
         <iframe
           src={embed}

@@ -26,7 +26,7 @@ export default async function SongPage({ params }: { params: Promise<{ id: strin
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="field-label">{song.artist || "Library"}</p>
-          <h1 className="font-serif text-4xl md:text-5xl">{song.title}</h1>
+          <h1 className="font-serif text-4xl tracking-tight md:text-5xl">{song.title}</h1>
           <div className="mt-3 flex flex-wrap gap-2">
             {song.key ? <span className="chip">Key {song.key}</span> : null}
             {song.tempo ? <span className="chip">{formatTempo(song.tempo)}</span> : null}
@@ -73,7 +73,7 @@ export default async function SongPage({ params }: { params: Promise<{ id: strin
           <ul className="mt-3 space-y-2">
             {usedIn.map((plan) => (
               <li key={plan.id}>
-                <Link href={`/plans/${plan.id}`} className="text-sage underline-offset-4 hover:underline">
+                <Link href={`/plans/${plan.id}`} className="text-wine underline-offset-4 hover:underline">
                   {plan.name} · {plan.date}
                 </Link>
               </li>

@@ -160,14 +160,14 @@ export function PlanWorkspace({
                   ) : null}
                   {resolved.song ? (
                     <div className="px-5 pb-4 pl-[4.25rem]">
-                      <Link href={`/songs/${resolved.song.id}`} className="text-sm text-sage underline-offset-4 hover:underline">
+                      <Link href={`/songs/${resolved.song.id}`} className="text-sm text-wine underline-offset-4 hover:underline">
                         Open in library
                       </Link>
                     </div>
                   ) : null}
                   {director && (item.type === "announcement" || item.type === "sermon" || item.type === "notes") ? (
                     <details className="group px-5 pb-4">
-                      <summary className="cursor-pointer text-sm text-sage">{resolved.body || "Add copy"}</summary>
+                      <summary className="cursor-pointer text-sm text-wine">{resolved.body || "Add copy"}</summary>
                       <form action={updatePlanItemAction} className="mt-3 space-y-3">
                         <input type="hidden" name="planId" value={plan.id} />
                         <input type="hidden" name="itemId" value={item.id} />
@@ -191,7 +191,7 @@ export function PlanWorkspace({
             <input type="hidden" name="planId" value={plan.id} />
             <div className="flex flex-wrap gap-2">
               {(Object.keys(ITEM_LABELS) as PlanItemType[]).map((type) => (
-                <label key={type} className={`chip cursor-pointer ${addType === type ? "border-sage text-sage" : ""}`}>
+                <label key={type} className={`chip cursor-pointer ${addType === type ? "chip-active" : ""}`}>
                   <input
                     type="radio"
                     name="type"
