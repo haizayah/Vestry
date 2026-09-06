@@ -29,7 +29,7 @@ export default async function SongPage({ params }: { params: Promise<{ id: strin
           <h1 className="font-serif text-4xl md:text-5xl">{song.title}</h1>
           <div className="mt-3 flex flex-wrap gap-2">
             {song.key ? <span className="chip">Key {song.key}</span> : null}
-            <span className="chip">{formatTempo(song.tempo)}</span>
+            {song.tempo ? <span className="chip">{formatTempo(song.tempo)}</span> : null}
           </div>
         </div>
         {session.role === "director" ? (
@@ -51,14 +51,20 @@ export default async function SongPage({ params }: { params: Promise<{ id: strin
         <div className="paper-card mb-6 rounded-3xl p-5 text-ink-soft">{song.notes}</div>
       ) : null}
 
-      <div className="space-y-5">
-        {hasYouTube(song.youtubeUrl) ? <YouTubePlayer url={song.youtubeUrl} title={song.title} /> : null}
-        {audio ? <AudioPlayer src={audio} title={`${song.title} — uploaded audio`} /> : null}
-        {!hasYouTube(song.youtubeUrl) && !audio ? (
-          <div className="paper-card rounded-3xl p-6 text-muted">
-            No rehearsal media yet. {session.role === "director" ? "Edit the song to add YouTube or audio." : "Check back after the director uploads."}
+      <div className="flex max-w-3xl flex-col gap-4">
+        {hasYouTube(song.youtubeUrl) || audio ? (
+          <div className="paper-card flex flex-col gap-4 rounded-3xl p-4">
+            {hasYouTube(song.youtubeUrl) ? <YouTubePlayer url={song.youtubeUrl} title={song.title} /> : null}
+            {audio ? <AudioPlayer src={audio} title={`${song.title} — uploaded audio`} framed={false} /> : null}
           </div>
-        ) : null}
+        ) : (
+          <p className="text-muted">
+            No rehearsal media yet.{" "}
+            {session.role === "director"
+              ? "Edit the song to add YouTube or audio."
+              : "Check back after the director uploads."}
+          </p>
+        )}
       </div>
 
       {usedIn.length > 0 ? (

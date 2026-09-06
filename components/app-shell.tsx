@@ -80,14 +80,14 @@ export function AppShell({
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
+        <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/90 px-4 py-3 backdrop-blur md:hidden">
             <Link href="/home">
               <VestryMark />
             </Link>
             <span className="text-[0.7rem] uppercase tracking-[0.14em] text-muted">{user.role}</span>
           </header>
-          <main className="flex-1 px-4 py-6 sm:px-8 sm:py-10">{children}</main>
+          <main className="flex-1 px-4 pb-24 pt-6 sm:px-8 sm:py-10 md:pb-10">{children}</main>
         </div>
       </div>
 
@@ -99,7 +99,7 @@ export function AppShell({
               key={item.href}
               href={item.href}
               className={`rounded-lg px-1 py-2 text-center text-[0.7rem] tracking-wide ${
-                active ? "text-sage" : "text-muted"
+                active ? "bg-sage/10 text-sage" : "text-muted"
               }`}
             >
               {item.label}

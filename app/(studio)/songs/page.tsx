@@ -44,8 +44,8 @@ export default async function SongsPage() {
           >
             <span className="font-serif text-xl">{song.title}</span>
             <span className="text-ink-soft">{song.artist || "—"}</span>
-            <span className="text-sm text-muted">{song.key || "—"}</span>
-            <span className="text-sm text-muted">{formatTempo(song.tempo)}</span>
+            <span className="hidden text-sm text-muted md:block">{song.key || "—"}</span>
+            <span className="hidden text-sm text-muted md:block">{formatTempo(song.tempo)}</span>
             <span className="flex flex-wrap gap-2">
               {hasYouTube(song.youtubeUrl) ? <span className="chip">YouTube</span> : null}
               {song.audioFilename ? <span className="chip">Audio</span> : null}
