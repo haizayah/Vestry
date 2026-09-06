@@ -72,7 +72,7 @@ See `.env.example`.
 Runtime data:
 
 - Locally: `data/store.json` (created from seed on first read; gitignored) and `data/uploads/`
-- On Vercel: in-memory seed plus `/tmp` (preview instances reset on cold start). Seed rehearsal audio is at `public/demo/harbor-rehearsal.wav`.
+- On Vercel: in-memory seed plus `/tmp` (preview instances reset on cold start). Seed rehearsal audio lives at `data/uploads/harbor-rehearsal.wav` and is served only through the session-gated `/api/media/[filename]` route (included in the serverless bundle via `outputFileTracingIncludes`).
 
 Directors can restore Harbor Church from **Settings → Reset demo data**.
 
