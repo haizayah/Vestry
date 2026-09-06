@@ -20,6 +20,7 @@ import {
   type CalendarPlan,
 } from "@/lib/calendar";
 import { formatPlanDate } from "@/lib/format";
+import { ConflictChip } from "./conflict-chip";
 
 type View = "month" | "week";
 
@@ -27,9 +28,10 @@ type Filters = {
   plans: boolean;
   events: boolean;
   assignments: boolean;
+  conflicts: boolean;
 };
 
-const DEFAULT_FILTERS: Filters = { plans: true, events: true, assignments: false };
+const DEFAULT_FILTERS: Filters = { plans: true, events: true, assignments: false, conflicts: false };
 
 export function CalendarView({
   plans,
@@ -164,6 +166,7 @@ export function CalendarView({
         <FilterChip label="Plans" pressed={filters.plans} onToggle={() => toggleFilter("plans")} />
         <FilterChip label="Events" pressed={filters.events} onToggle={() => toggleFilter("events")} />
         <FilterChip label="My assignments" pressed={filters.assignments} onToggle={() => toggleFilter("assignments")} />
+        <FilterChip label="Conflicts" pressed={filters.conflicts} onToggle={() => toggleFilter("conflicts")} />
       </div>
 
       {emptyRange ? (
@@ -195,6 +198,7 @@ export function CalendarView({
             selected={selected}
             plans={visiblePlans}
             events={visibleEvents}
+            highlightConflicts={filters.conflicts}
             onSelect={setSelected}
           />
         ) : (
@@ -204,6 +208,7 @@ export function CalendarView({
             selected={selected}
             plans={visiblePlans}
             events={visibleEvents}
+            highlightConflicts={filters.conflicts}
             onSelect={setSelected}
           />
         )}
@@ -213,6 +218,7 @@ export function CalendarView({
             date={selected}
             plans={selectedPlans}
             events={selectedEvents}
+            highlightConflicts={filters.conflicts}
             desktop
             onClose={() => setSelected(null)}
           />
@@ -231,6 +237,7 @@ export function CalendarView({
             date={selected}
             plans={selectedPlans}
             events={selectedEvents}
+            highlightConflicts={filters.conflicts}
             onClose={() => setSelected(null)}
           />
         </>
@@ -255,15 +262,34 @@ function FilterChip({
   );
 }
 
-function PlanChip({ plan, compact }: { plan: CalendarPlan; compact?: boolean }) {
+function PlanChip({
+  plan,
+  compact,
+  highlightConflicts,
+}: {
+  plan: CalendarPlan;
+  compact?: boolean;
+  highlightConflicts?: boolean;
+}) {
+  const conflict = Boolean(highlightConflicts && plan.conflicts.length > 0);
+  const label = compact && plan.serviceTime ? `${plan.serviceTime} · ${plan.name}` : plan.name;
+  const tooltip = conflict
+    ? plan.conflicts
+        .map((row) => (row.note ? `${row.personName}: ${row.range} — ${row.note}` : `${row.personName}: ${row.range}`))
+        .join(" · ")
+    : plan.name;
   return (
     <Link
       href={`/plans/${plan.id}`}
-      title={plan.name}
+      title={tooltip}
       onClick={(event) => event.stopPropagation()}
-      className="block truncate rounded-full bg-wine-mid px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-on-deep hover:bg-wine"
+      className={
+        conflict
+          ? "block truncate rounded-full border border-gold bg-gold/20 px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-wine-deep hover:bg-gold/30"
+          : "block truncate rounded-full bg-wine-mid px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-on-deep hover:bg-wine"
+      }
     >
-      {compact && plan.serviceTime ? `${plan.serviceTime} · ${plan.name}` : plan.name}
+      {conflict ? `Conflict · ${label}` : label}
     </Link>
   );
 }
@@ -276,6 +302,34 @@ function EventChip({ event }: { event: CalendarEvent }) {
   );
 }
 
+function dayHighlight({
+  iso,
+  today,
+  selected,
+  hasConflict,
+  highlightConflicts,
+  outside,
+}: {
+  iso: string;
+  today: string;
+  selected: string | null;
+  hasConflict: boolean;
+  highlightConflicts: boolean;
+  outside?: boolean;
+}) {
+  const isToday = iso === today;
+  const isSelected = iso === selected;
+  const conflict = highlightConflicts && hasConflict;
+  return {
+    isToday,
+    isSelected,
+    conflict,
+    className: `${outside ? "bg-paper-deep/35 text-muted" : "bg-card"} ${isSelected ? "bg-wine/[0.06]" : ""} ${
+      conflict ? "bg-gold/15 ring-2 ring-inset ring-gold" : isToday ? "ring-2 ring-inset ring-wine-deep" : ""
+    }`,
+  };
+}
+
 function MonthGrid({
   days,
   cursor,
@@ -283,6 +337,7 @@ function MonthGrid({
   selected,
   plans,
   events,
+  highlightConflicts,
   onSelect,
 }: {
   days: string[];
@@ -291,6 +346,7 @@ function MonthGrid({
   selected: string | null;
   plans: CalendarPlan[];
   events: CalendarEvent[];
+  highlightConflicts: boolean;
   onSelect: (iso: string) => void;
 }) {
   return (
@@ -308,15 +364,21 @@ function MonthGrid({
           const dayPlans = plans.filter((plan) => plan.date === iso);
           const dayEvents = events.filter((event) => event.date === iso);
           const outside = !sameMonth(iso, cursor);
-          const isToday = iso === today;
-          const isSelected = iso === selected;
+          const tone = dayHighlight({
+            iso,
+            today,
+            selected,
+            hasConflict: dayPlans.some((plan) => plan.conflicts.length > 0),
+            highlightConflicts,
+            outside,
+          });
           return (
             <div
               key={iso}
               role="button"
               tabIndex={0}
               aria-label={formatPlanDate(iso)}
-              aria-pressed={isSelected}
+              aria-pressed={tone.isSelected}
               onClick={() => onSelect(iso)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
@@ -326,16 +388,14 @@ function MonthGrid({
               }}
               className={`min-h-[5.5rem] border-b border-line p-1.5 sm:min-h-[7rem] sm:p-2 ${
                 (index + 1) % 7 === 0 ? "" : "border-r"
-              } ${outside ? "bg-paper-deep/35 text-muted" : "bg-card"} ${isSelected ? "bg-wine/[0.06]" : ""} ${
-                isToday ? "ring-2 ring-inset ring-wine-deep" : ""
-              }`}
+              } ${tone.className}`}
             >
-              <p className={`text-xs sm:text-sm ${isToday ? "font-semibold text-wine-deep" : ""}`}>
+              <p className={`text-xs sm:text-sm ${tone.isToday ? "font-semibold text-wine-deep" : ""}`}>
                 {Number(iso.slice(-2))}
               </p>
               <div className="mt-1 flex flex-col gap-1">
                 {dayPlans.map((plan) => (
-                  <PlanChip key={plan.id} plan={plan} />
+                  <PlanChip key={plan.id} plan={plan} highlightConflicts={highlightConflicts} />
                 ))}
                 {dayEvents.map((event) => (
                   <EventChip key={event.id} event={event} />
@@ -355,6 +415,7 @@ function WeekGrid({
   selected,
   plans,
   events,
+  highlightConflicts,
   onSelect,
 }: {
   days: string[];
@@ -362,6 +423,7 @@ function WeekGrid({
   selected: string | null;
   plans: CalendarPlan[];
   events: CalendarEvent[];
+  highlightConflicts: boolean;
   onSelect: (iso: string) => void;
 }) {
   const allDay = (iso: string) => ({
@@ -383,6 +445,7 @@ function WeekGrid({
         {days.map((iso, index) => {
           const isToday = iso === today;
           const isSelected = iso === selected;
+          const conflict = highlightConflicts && plans.some((plan) => plan.date === iso && plan.conflicts.length > 0);
           return (
             <button
               key={iso}
@@ -390,7 +453,7 @@ function WeekGrid({
               onClick={() => onSelect(iso)}
               className={`border-b border-line px-0.5 py-2 text-center ${index < 6 ? "border-r" : ""} ${
                 isSelected ? "bg-wine/[0.06]" : "bg-paper-deep/60"
-              } ${isToday ? "ring-2 ring-inset ring-wine-deep" : ""}`}
+              } ${conflict ? "bg-gold/15 ring-2 ring-inset ring-gold" : isToday ? "ring-2 ring-inset ring-wine-deep" : ""}`}
             >
               <span className="block text-[0.62rem] uppercase tracking-[0.1em] text-muted sm:hidden">
                 {WEEKDAYS_NARROW[index]}
@@ -424,12 +487,18 @@ function WeekGrid({
                 }
               }}
               className={`min-h-[2.75rem] border-b border-line p-1 ${index < 6 ? "border-r" : ""} ${
-                iso === selected ? "bg-wine/[0.06]" : "bg-card"
-              } ${iso === today ? "ring-2 ring-inset ring-wine-deep" : ""}`}
+                dayHighlight({
+                  iso,
+                  today,
+                  selected,
+                  hasConflict: items.plans.some((plan) => plan.conflicts.length > 0),
+                  highlightConflicts,
+                }).className
+              }`}
             >
               <div className="flex flex-col gap-1">
                 {items.plans.map((plan) => (
-                  <PlanChip key={plan.id} plan={plan} />
+                  <PlanChip key={plan.id} plan={plan} highlightConflicts={highlightConflicts} />
                 ))}
                 {items.events.map((event) => (
                   <EventChip key={event.id} event={event} />
@@ -447,6 +516,7 @@ function WeekGrid({
             today={today}
             selected={selected}
             timedAt={timedAt}
+            highlightConflicts={highlightConflicts}
             onSelect={onSelect}
           />
         ))}
@@ -461,6 +531,7 @@ function HourRow({
   today,
   selected,
   timedAt,
+  highlightConflicts,
   onSelect,
 }: {
   hour: number;
@@ -468,6 +539,7 @@ function HourRow({
   today: string;
   selected: string | null;
   timedAt: (iso: string, hour: number) => { plans: CalendarPlan[]; events: CalendarEvent[] };
+  highlightConflicts: boolean;
   onSelect: (iso: string) => void;
 }) {
   return (
@@ -491,12 +563,18 @@ function HourRow({
               }
             }}
             className={`min-h-[2.5rem] border-b border-line p-1 sm:min-h-[3rem] ${index < 6 ? "border-r" : ""} ${
-              iso === selected ? "bg-wine/[0.06]" : iso === today ? "bg-wine/[0.04]" : "bg-card"
+              dayHighlight({
+                iso,
+                today,
+                selected,
+                hasConflict: items.plans.some((plan) => plan.conflicts.length > 0),
+                highlightConflicts,
+              }).className
             }`}
           >
             <div className="flex flex-col gap-1">
               {items.plans.map((plan) => (
-                <PlanChip key={plan.id} plan={plan} compact />
+                <PlanChip key={plan.id} plan={plan} compact highlightConflicts={highlightConflicts} />
               ))}
               {items.events.map((event) => (
                 <EventChip key={event.id} event={event} />
@@ -513,12 +591,14 @@ function DayPanel({
   date,
   plans,
   events,
+  highlightConflicts,
   onClose,
   desktop,
 }: {
   date: string | null;
   plans: CalendarPlan[];
   events: CalendarEvent[];
+  highlightConflicts: boolean;
   onClose: () => void;
   desktop?: boolean;
 }) {
@@ -547,6 +627,18 @@ function DayPanel({
               {plan.serviceTime || "All day"}
               {plan.assigned ? " · You’re assigned" : ""}
             </p>
+            {highlightConflicts && plan.conflicts.length > 0 ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <ConflictChip
+                  tooltip={plan.conflicts
+                    .map((row) => (row.note ? `${row.personName}: ${row.range} — ${row.note}` : `${row.personName}: ${row.range}`))
+                    .join(" · ")}
+                />
+                <p className="text-sm text-wine-deep">
+                  {plan.conflicts.map((row) => `${row.personName} · ${row.range}`).join(" · ")}
+                </p>
+              </div>
+            ) : null}
           </li>
         ))}
         {events.map((event) => (

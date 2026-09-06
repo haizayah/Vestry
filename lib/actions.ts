@@ -151,6 +151,7 @@ export async function updatePlanMetaAction(formData: FormData) {
     plan.date = String(formData.get("date") || plan.date);
     plan.serviceTime = String(formData.get("serviceTime") || plan.serviceTime).trim();
     plan.notes = String(formData.get("notes") || "").trim();
+    // Warn-only: lockout overlap on the (possibly new) date never rejects this write.
   });
   refreshApp();
 }
@@ -266,6 +267,7 @@ export async function assignPersonAction(formData: FormData) {
     if (!plan) throw new Error("Plan not found");
     if (!store.people.some((p) => p.id === personId)) throw new Error("Person not found");
     if (plan.assignments.some((a) => a.personId === personId && a.position === position)) return;
+    // Warn-only: a lockout covering plan.date must not block assign.
     plan.assignments.push({
       id: newId("as"),
       personId,
@@ -333,3 +335,4 @@ export async function updateChurchAction(formData: FormData): Promise<void> {
   });
   refreshApp();
 }
+

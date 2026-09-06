@@ -15,6 +15,7 @@ import {
 import { audioSrc, hasYouTube, resolveItem } from "@/lib/media";
 import { ITEM_LABELS, POSITIONS, type Person, type Plan, type PlanItemType, type PublicUser, type Song } from "@/lib/types";
 import { AudioUploader } from "./audio-uploader";
+import { ConflictChip } from "./conflict-chip";
 import { RehearsalDock } from "./rehearsal-dock";
 
 export function PlanWorkspace({
@@ -22,11 +23,13 @@ export function PlanWorkspace({
   songs,
   people,
   user,
+  assignmentConflicts,
 }: {
   plan: Plan;
   songs: Song[];
   people: Person[];
   user: PublicUser;
+  assignmentConflicts: Record<string, string>;
 }) {
   const director = user.role === "director";
   const me = people.find((p) => p.userId === user.id);
@@ -238,6 +241,7 @@ export function PlanWorkspace({
             {plan.assignments.map((assignment) => {
               const person = people.find((p) => p.id === assignment.personId);
               const mine = me?.id === assignment.personId;
+              const conflictTooltip = director ? assignmentConflicts[assignment.id] : undefined;
               return (
                 <li key={assignment.id} className="border-b border-line/70 pb-3 last:border-0">
                   <div className="flex items-start justify-between gap-2">
@@ -245,17 +249,20 @@ export function PlanWorkspace({
                       <p className="font-medium">{person?.name ?? "Unknown"}</p>
                       <p className="text-sm text-muted">{assignment.position}</p>
                     </div>
-                    <span
-                      className={`chip ${
-                        assignment.status === "accepted"
-                          ? "border-good/30 text-good"
-                          : assignment.status === "declined"
-                            ? "border-rose/30 text-rose"
-                            : ""
-                      }`}
-                    >
-                      {assignment.status}
-                    </span>
+                    <div className="flex flex-wrap items-center justify-end gap-1">
+                      {conflictTooltip ? <ConflictChip tooltip={conflictTooltip} /> : null}
+                      <span
+                        className={`chip ${
+                          assignment.status === "accepted"
+                            ? "border-good/30 text-good"
+                            : assignment.status === "declined"
+                              ? "border-rose/30 text-rose"
+                              : ""
+                        }`}
+                      >
+                        {assignment.status}
+                      </span>
+                    </div>
                   </div>
                   {mine || director ? (
                     <div className="mt-2 flex flex-wrap gap-2">

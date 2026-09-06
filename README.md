@@ -13,7 +13,7 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 - Marketing landing at `/`
 - Demo auth with persisted session (director + member)
 - App shell: Home, Plans, Calendar, Songs, Team, Settings
-- Calendar month and week shells over Harbor plans (no lockouts, recurring, or scheduling)
+- Calendar month and week shells over Harbor plans, plus member blockouts and warn-only assignment conflicts
 - Song library CRUD (title, artist, key, tempo, notes, YouTube, audio)
 - Service plans with a reorderable order of service
 - YouTube and uploaded audio play **in-app** on song and plan pages
@@ -22,7 +22,7 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 
 **Out of scope**
 
-Giving, Check-ins, Groups, a full Calendar product (lockouts, recurring, leads, chat, drag-drop, auto-scheduler), CCLI, native apps, Spotify/Apple Music APIs.
+Giving, Check-ins, Groups, a full Calendar product (recurring, leads, chat, drag-drop, auto-scheduler), CCLI, native apps, Spotify/Apple Music APIs.
 
 ## Stack
 
@@ -43,7 +43,7 @@ Session is an HTTP-only cookie (30 days). The login page also has one-click demo
 - 2 upcoming plans: **Sunday Gathering** (Sep 13, 2026) and **Harbor Sunday** (Sep 20, 2026)
 - A seven-person roster with assignments already on the plans
 
-Jordan Ellis (member) has a pending invite on Sep 13 and an accepted seat on Sep 20.
+Jordan Ellis (member) has a pending invite on Sep 13, an accepted seat on Sep 20, and a seeded blockout Sep 12–14 (warn-only conflict on Sunday Gathering).
 
 ## Getting started
 
@@ -85,6 +85,7 @@ Directors can restore Harbor Church from **Settings → Reset demo data**.
 4. Upload rehearsal audio on a song — it plays on the song page and anywhere that song is on a setlist.
 5. Assign people to positions.
 6. Sign out, enter as **member**, open the plan, accept/decline, and rehearse in-app.
+7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked. Lockout create/list/update/delete and conflict compute run in the server action layer with ownership checks; directors may read all lockouts for warnings only.
 
 ## Project layout
 

@@ -69,12 +69,23 @@ export type Person = {
   userId?: string;
 };
 
+export type Lockout = {
+  id: string;
+  personId: string;
+  userId: string;
+  start: string;
+  end: string;
+  note: string;
+  createdAt: string;
+};
+
 export type StoreData = {
   churchName: string;
   users: User[];
   people: Person[];
   songs: Song[];
   plans: Plan[];
+  lockouts: Lockout[];
 };
 
 export const POSITIONS = [
