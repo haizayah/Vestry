@@ -208,13 +208,22 @@ body {
 
 .rehearsal-dock {
   position: fixed;
-  inset-inline: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
   bottom: var(--dock-nav-clearance);
   z-index: 20;
   display: flex;
   flex-direction: column;
   max-height: var(--dock-max-height);
   min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .rehearsal-dock {
+    left: auto;
+    right: 1.5rem;
+    width: min(100%, 24rem);
+  }
 }
 
 .rehearsal-dock-card {

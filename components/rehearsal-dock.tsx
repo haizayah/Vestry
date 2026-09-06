@@ -16,7 +16,7 @@ export function RehearsalDock({
 }) {
   return (
     <aside
-      className="rehearsal-dock md:left-auto md:right-6 md:w-[min(100%,24rem)]"
+      className="rehearsal-dock"
       aria-label="Now rehearsing"
     >
       <div className="paper-card rehearsal-dock-card rounded-3xl p-4">
