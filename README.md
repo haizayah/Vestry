@@ -12,7 +12,8 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 
 - Marketing landing at `/`
 - Demo auth with persisted session (director + member)
-- App shell: Home, Plans, Songs, Team, Settings
+- App shell: Home, Plans, Calendar, Songs, Team, Settings
+- Calendar month and week shells over Harbor plans (no lockouts, recurring, or scheduling)
 - Song library CRUD (title, artist, key, tempo, notes, YouTube, audio)
 - Service plans with a reorderable order of service
 - YouTube and uploaded audio play **in-app** on song and plan pages
@@ -21,7 +22,7 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 
 **Out of scope**
 
-Giving, Check-ins, Groups, a full Calendar product, CCLI, native apps, Spotify/Apple Music APIs.
+Giving, Check-ins, Groups, a full Calendar product (lockouts, recurring, leads, chat, drag-drop, auto-scheduler), CCLI, native apps, Spotify/Apple Music APIs.
 
 ## Stack
 
