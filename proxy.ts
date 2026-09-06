@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/session-token";
 
 const PROTECTED = ["/home", "/plans", "/songs", "/team", "/settings"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = request.cookies.get("vestry_session")?.value;
+  const session = verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
   const isProtected = PROTECTED.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
   if (isProtected && !session) {

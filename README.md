@@ -67,7 +67,7 @@ See `.env.example`.
 
 | Variable | Purpose |
 | --- | --- |
-| `SESSION_SECRET` | Signs the session cookie. Defaults to a dev secret if unset. |
+| `SESSION_SECRET` | Signs the session cookie. **Required in production** — Vercel must set this or the app fails closed. Local/dev may omit it and will use a documented insecure default. |
 
 Runtime data:
 
@@ -96,6 +96,6 @@ data/uploads/   rehearsal audio
 
 ## Notes
 
-This is a local-first MVP. The JSON store is not a multi-instance production database. Vercel previews keep Harbor Church in memory so the build never writes `data/` on a read-only serverless filesystem. Set `SESSION_SECRET` before putting it on the public internet.
+This is a local-first MVP. The JSON store is not a multi-instance production database. Vercel previews keep Harbor Church in memory so the build never writes `data/` on a read-only serverless filesystem. Production and Vercel deploys must set `SESSION_SECRET`; the app will not sign or verify sessions without it.
 
 `vercel.json` pins the framework to **nextjs** and the build command to `npm run build`. Do not set Output Directory to `public` — Next.js uses `.next` plus serverless functions. If a dashboard override still forces `public`, clear **Project Settings → Build & Output → Output Directory** and leave it empty.

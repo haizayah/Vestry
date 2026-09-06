@@ -11,8 +11,13 @@ const EXT: Record<string, string> = {
   "audio/wave": "wav",
   "audio/x-wav": "wav",
 };
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
 export const runtime = "nodejs";
+
+function payloadTooLarge() {
+  return NextResponse.json({ error: "File too large. Maximum size is 25 MB." }, { status: 413 });
+}
 
 export async function POST(request: Request) {
   try {
@@ -21,24 +26,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const contentLength = request.headers.get("content-length");
+  if (contentLength) {
+    const length = Number(contentLength);
+    if (Number.isFinite(length) && length > MAX_UPLOAD_BYTES) {
+      return payloadTooLarge();
+    }
+  }
+
   const form = await request.formData();
   const file = form.get("file");
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
   }
 
-  const type = file.type || "application/octet-stream";
-  const name = file.name.toLowerCase();
-  const namedOk = name.endsWith(".mp3") || name.endsWith(".m4a") || name.endsWith(".wav");
-  if (!ALLOWED.has(type) && !namedOk) {
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return payloadTooLarge();
+  }
+
+  if (!ALLOWED.has(file.type)) {
     return NextResponse.json({ error: "Upload an mp3, m4a, or wav file." }, { status: 400 });
   }
 
-  const ext =
-    EXT[type] ||
-    (name.endsWith(".mp3") ? "mp3" : name.endsWith(".m4a") ? "m4a" : "wav");
-  const filename = `${newId("audio")}.${ext}`;
+  const filename = `${newId("audio")}.${EXT[file.type]}`;
   const buffer = new Uint8Array(await file.arrayBuffer());
+  if (buffer.byteLength > MAX_UPLOAD_BYTES) {
+    return payloadTooLarge();
+  }
   await saveUpload(filename, buffer);
 
   return NextResponse.json({ filename });
