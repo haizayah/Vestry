@@ -1,12 +1,8 @@
 import { cookies } from "next/headers";
-import { createHmac } from "crypto";
 import type { PublicUser, Role, User } from "./types";
+import { SESSION_COOKIE, signSessionToken, verifySessionToken } from "./session-token";
 
-const COOKIE = "vestry_session";
-
-function secret() {
-  return process.env.SESSION_SECRET || "vestry-dev-secret-change-me";
-}
+export { SESSION_COOKIE, verifySessionToken } from "./session-token";
 
 export function toPublicUser(user: User): PublicUser {
   return {
@@ -17,32 +13,9 @@ export function toPublicUser(user: User): PublicUser {
   };
 }
 
-function signPayload(user: PublicUser) {
-  const body = Buffer.from(JSON.stringify(user), "utf8").toString("base64url");
-  const sig = createHmac("sha256", secret()).update(body).digest("hex").slice(0, 32);
-  return `${body}.${sig}`;
-}
-
-function verifyPayload(token: string | undefined): PublicUser | null {
-  if (!token) return null;
-  const dot = token.lastIndexOf(".");
-  if (dot <= 0) return null;
-  const body = token.slice(0, dot);
-  const sig = token.slice(dot + 1);
-  const expected = createHmac("sha256", secret()).update(body).digest("hex").slice(0, 32);
-  if (expected !== sig) return null;
-  try {
-    const user = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as PublicUser;
-    if (!user?.id || !user.email || !user.role) return null;
-    return user;
-  } catch {
-    return null;
-  }
-}
-
 export async function getSession(): Promise<PublicUser | null> {
   const jar = await cookies();
-  return verifyPayload(jar.get(COOKIE)?.value);
+  return verifySessionToken(jar.get(SESSION_COOKIE)?.value);
 }
 
 export async function requireSession(): Promise<PublicUser> {
@@ -63,7 +36,7 @@ export async function requireRole(role: Role): Promise<PublicUser> {
 
 export async function setSessionCookie(user: PublicUser) {
   const jar = await cookies();
-  jar.set(COOKIE, signPayload(user), {
+  jar.set(SESSION_COOKIE, signSessionToken(user), {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
@@ -74,11 +47,9 @@ export async function setSessionCookie(user: PublicUser) {
 
 export async function clearSessionCookie() {
   const jar = await cookies();
-  jar.delete(COOKIE);
+  jar.delete(SESSION_COOKIE);
 }
 
 export function isDirector(user: PublicUser | null): boolean {
   return user?.role === "director";
 }
-
-export const SESSION_COOKIE = COOKIE;
