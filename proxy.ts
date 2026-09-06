@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session-token";
 
-const PROTECTED = ["/home", "/plans", "/calendar", "/songs", "/team", "/settings"];
+const PROTECTED = ["/home", "/plans", "/calendar", "/songs", "/team", "/settings", "/availability"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -30,6 +30,7 @@ export const config = {
     "/songs/:path*",
     "/team/:path*",
     "/settings/:path*",
+    "/availability/:path*",
     "/login",
   ],
 };

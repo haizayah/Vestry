@@ -1,9 +1,16 @@
+export type CalendarConflict = {
+  personName: string;
+  range: string;
+  note: string;
+};
+
 export type CalendarPlan = {
   id: string;
   name: string;
   date: string;
   serviceTime: string;
   assigned: boolean;
+  conflicts: CalendarConflict[];
 };
 
 /** Optional church-event chips. P0 wires the UI; the store may pass none. */

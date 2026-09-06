@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { logoutAction, resetDemoAction, updateChurchAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
@@ -23,6 +24,16 @@ export default async function SettingsPage() {
         <p className="font-serif text-3xl">{session.name}</p>
         <p className="mt-1 text-ink-soft">{session.email}</p>
         <p className="mt-3 chip w-fit">{session.role === "director" ? "Music director" : "Team member"}</p>
+      </section>
+
+      <section className="paper-card space-y-3 rounded-3xl p-6">
+        <p className="field-label">Availability</p>
+        <p className="text-ink-soft">
+          Add dates you’re unavailable. Directors see a gold warning if those overlap a Sunday you’re assigned to.
+        </p>
+        <Link href="/availability" className="btn btn-ghost">
+          Manage blockouts
+        </Link>
       </section>
 
       {session.role === "director" ? (

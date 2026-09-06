@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearSessionCookie, requireRole, requireSession, setSessionCookie, toPublicUser } from "./auth";
+import { isISODate } from "./lockouts";
 import { newId, readStore, resetStore, updateStore } from "./store";
 import type { AssignmentStatus, PlanItem, PlanItemType } from "./types";
 
@@ -330,6 +331,44 @@ export async function updateChurchAction(formData: FormData): Promise<void> {
   if (!name) return;
   await updateStore((store) => {
     store.churchName = name;
+  });
+  refreshApp();
+}
+
+export async function createLockoutAction(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  const start = String(formData.get("start") || "").trim();
+  const end = String(formData.get("end") || "").trim();
+  const note = String(formData.get("note") || "").trim();
+  if (!isISODate(start) || !isISODate(end) || end < start) return;
+
+  await updateStore((store) => {
+    const person = store.people.find((entry) => entry.userId === session.id);
+    if (!person) throw new Error("Forbidden");
+    store.lockouts.push({
+      id: newId("lock"),
+      personId: person.id,
+      userId: session.id,
+      start,
+      end,
+      note,
+      createdAt: new Date().toISOString(),
+    });
+  });
+  refreshApp();
+}
+
+export async function deleteLockoutAction(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  const id = String(formData.get("id") || "");
+  await updateStore((store) => {
+    const lockout = store.lockouts.find((entry) => entry.id === id);
+    if (!lockout) throw new Error("Lockout not found");
+    const person = store.people.find((entry) => entry.userId === session.id);
+    if (lockout.userId !== session.id || lockout.personId !== person?.id) {
+      throw new Error("Forbidden");
+    }
+    store.lockouts = store.lockouts.filter((entry) => entry.id !== id);
   });
   refreshApp();
 }

@@ -18,6 +18,13 @@ function seedClone(): StoreData {
   return structuredClone(createSeed());
 }
 
+function normalizeStore(data: StoreData): StoreData {
+  if (!Array.isArray(data.lockouts)) {
+    data.lockouts = [];
+  }
+  return data;
+}
+
 async function persist(data: StoreData) {
   if (building()) return;
   const json = JSON.stringify(data, null, 2);
@@ -38,10 +45,10 @@ async function readPersisted(): Promise<StoreData | null> {
   try {
     if (serverless()) {
       const raw = await fs.readFile(path.join("/tmp", "vestry-store.json"), "utf8");
-      return JSON.parse(raw) as StoreData;
+      return normalizeStore(JSON.parse(raw) as StoreData);
     }
     const raw = await fs.readFile(path.join(process.cwd(), "data", "store.json"), "utf8");
-    return JSON.parse(raw) as StoreData;
+    return normalizeStore(JSON.parse(raw) as StoreData);
   } catch {
     return null;
   }

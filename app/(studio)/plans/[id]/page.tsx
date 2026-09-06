@@ -6,6 +6,7 @@ import { formatPlanDate } from "@/lib/format";
 import { mediaReadyCount } from "@/lib/media";
 import { readStore } from "@/lib/store";
 import { PlanWorkspace } from "@/components/plan-workspace";
+import { visibleLockouts } from "@/lib/lockouts";
 
 export const metadata: Metadata = { title: "Plan" };
 
@@ -37,7 +38,13 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           </form>
         ) : null}
       </div>
-      <PlanWorkspace plan={plan} songs={store.songs} people={store.people} user={session} />
+      <PlanWorkspace
+        plan={plan}
+        songs={store.songs}
+        people={store.people}
+        user={session}
+        lockouts={visibleLockouts(store.lockouts, session)}
+      />
     </div>
   );
 }

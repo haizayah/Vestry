@@ -12,8 +12,14 @@ const NAV = [
   { href: "/calendar", label: "Calendar" },
   { href: "/songs", label: "Songs" },
   { href: "/team", label: "Team" },
-  { href: "/settings", label: "Settings" },
 ];
+
+const SETTINGS_NAV = [
+  { href: "/settings", label: "Settings" },
+  { href: "/availability", label: "Availability" },
+];
+
+const MOBILE_NAV = [...NAV, { href: "/settings", label: "Settings" }];
 
 function isActive(pathname: string, href: string) {
   if (href === "/home") return pathname === "/home";
@@ -54,6 +60,21 @@ export function AppShell({
                 </Link>
               );
             })}
+            <p className="mt-5 mb-1 px-3 text-[0.62rem] uppercase tracking-[0.16em] text-on-deep/40">Settings</p>
+            {SETTINGS_NAV.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`rounded-xl px-3 py-2.5 text-sm transition ${
+                    active ? "bg-on-deep/12 text-white" : "text-on-deep/70 hover:bg-on-deep/8 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
           <div className="mt-6 border-t border-white/10 pt-5">
             <p className="font-serif text-lg leading-tight">{user.name}</p>
@@ -80,8 +101,11 @@ export function AppShell({
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-card/95 px-0.5 py-2 backdrop-blur md:hidden">
-        {NAV.map((item) => {
-          const active = isActive(pathname, item.href);
+        {MOBILE_NAV.map((item) => {
+          const active =
+            item.href === "/settings"
+              ? isActive(pathname, "/settings") || isActive(pathname, "/availability")
+              : isActive(pathname, item.href);
           return (
             <Link
               key={item.href}

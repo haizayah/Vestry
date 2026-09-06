@@ -342,5 +342,16 @@ export function createSeed(): StoreData {
         ],
       },
     ],
+    lockouts: [
+      {
+        id: "lock-jordan-sep13",
+        personId: "person-jordan",
+        userId: "user-jordan",
+        start: "2026-09-12",
+        end: "2026-09-14",
+        note: "Out of town",
+        createdAt: now,
+      },
+    ],
   };
 }
