@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import { requireRole } from "@/lib/auth";
-import { newId } from "@/lib/store";
+import { newId, saveUpload } from "@/lib/store";
 
 const ALLOWED = new Set(["audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/wav", "audio/wave", "audio/x-wav"]);
 const EXT: Record<string, string> = {
@@ -13,6 +11,8 @@ const EXT: Record<string, string> = {
   "audio/wave": "wav",
   "audio/x-wav": "wav",
 };
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
@@ -38,9 +38,8 @@ export async function POST(request: Request) {
     EXT[type] ||
     (name.endsWith(".mp3") ? "mp3" : name.endsWith(".m4a") ? "m4a" : "wav");
   const filename = `${newId("audio")}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const dest = path.join(process.cwd(), "data", "uploads", filename);
-  await fs.writeFile(dest, buffer);
+  const buffer = new Uint8Array(await file.arrayBuffer());
+  await saveUpload(filename, buffer);
 
   return NextResponse.json({ filename });
 }

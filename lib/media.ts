@@ -40,5 +40,7 @@ export function planHasPlayableMedia(plan: Plan, songs: Song[]) {
 }
 
 export function audioSrc(filename: string | null | undefined): string | null {
-  return filename ? `/api/media/${encodeURIComponent(filename)}` : null;
+  if (!filename) return null;
+  if (filename === "harbor-rehearsal.wav") return "/demo/harbor-rehearsal.wav";
+  return `/api/media/${encodeURIComponent(filename)}`;
 }

@@ -1,25 +1,11 @@
 import { cookies } from "next/headers";
 import { createHmac } from "crypto";
-import { readStore } from "./store";
 import type { PublicUser, Role, User } from "./types";
 
 const COOKIE = "vestry_session";
 
 function secret() {
   return process.env.SESSION_SECRET || "vestry-dev-secret-change-me";
-}
-
-function sign(userId: string) {
-  const sig = createHmac("sha256", secret()).update(userId).digest("hex").slice(0, 32);
-  return `${userId}.${sig}`;
-}
-
-function verify(token: string | undefined): string | null {
-  if (!token) return null;
-  const [userId, sig] = token.split(".");
-  if (!userId || !sig) return null;
-  const expected = sign(userId);
-  return expected === token ? userId : null;
 }
 
 export function toPublicUser(user: User): PublicUser {
@@ -31,13 +17,32 @@ export function toPublicUser(user: User): PublicUser {
   };
 }
 
+function signPayload(user: PublicUser) {
+  const body = Buffer.from(JSON.stringify(user), "utf8").toString("base64url");
+  const sig = createHmac("sha256", secret()).update(body).digest("hex").slice(0, 32);
+  return `${body}.${sig}`;
+}
+
+function verifyPayload(token: string | undefined): PublicUser | null {
+  if (!token) return null;
+  const dot = token.lastIndexOf(".");
+  if (dot <= 0) return null;
+  const body = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  const expected = createHmac("sha256", secret()).update(body).digest("hex").slice(0, 32);
+  if (expected !== sig) return null;
+  try {
+    const user = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as PublicUser;
+    if (!user?.id || !user.email || !user.role) return null;
+    return user;
+  } catch {
+    return null;
+  }
+}
+
 export async function getSession(): Promise<PublicUser | null> {
   const jar = await cookies();
-  const userId = verify(jar.get(COOKIE)?.value);
-  if (!userId) return null;
-  const store = await readStore();
-  const user = store.users.find((u) => u.id === userId);
-  return user ? toPublicUser(user) : null;
+  return verifyPayload(jar.get(COOKIE)?.value);
 }
 
 export async function requireSession(): Promise<PublicUser> {
@@ -56,9 +61,9 @@ export async function requireRole(role: Role): Promise<PublicUser> {
   return session;
 }
 
-export async function setSessionCookie(userId: string) {
+export async function setSessionCookie(user: PublicUser) {
   const jar = await cookies();
-  jar.set(COOKIE, sign(userId), {
+  jar.set(COOKIE, signPayload(user), {
     httpOnly: true,
     sameSite: "lax",
     path: "/",

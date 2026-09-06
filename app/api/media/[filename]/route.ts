@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
 import path from "path";
 import { getSession } from "@/lib/auth";
+import { readUpload } from "@/lib/store";
 
 const TYPES: Record<string, string> = {
   ".mp3": "audio/mpeg",
   ".m4a": "audio/mp4",
   ".wav": "audio/wav",
 };
+
+export const runtime = "nodejs";
 
 export async function GET(
   _request: Request,
@@ -19,19 +21,16 @@ export async function GET(
   }
 
   const { filename } = await params;
-  const safe = path.basename(filename);
-  const filePath = path.join(process.cwd(), "data", "uploads", safe);
-
-  try {
-    const data = await fs.readFile(filePath);
-    const ext = path.extname(safe).toLowerCase();
-    return new NextResponse(new Uint8Array(data), {
-      headers: {
-        "Content-Type": TYPES[ext] || "application/octet-stream",
-        "Cache-Control": "private, max-age=3600",
-      },
-    });
-  } catch {
+  const data = await readUpload(filename);
+  if (!data) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  const ext = path.extname(filename).toLowerCase();
+  return new NextResponse(new Uint8Array(data), {
+    headers: {
+      "Content-Type": TYPES[ext] || "application/octet-stream",
+      "Cache-Control": "private, max-age=3600",
+    },
+  });
 }

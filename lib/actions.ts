@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { clearSessionCookie, requireRole, requireSession, setSessionCookie } from "./auth";
+import { clearSessionCookie, requireRole, requireSession, setSessionCookie, toPublicUser } from "./auth";
 import { newId, readStore, resetStore, updateStore } from "./store";
 import type { AssignmentStatus, PlanItem, PlanItemType } from "./types";
 
@@ -20,7 +20,7 @@ export async function loginAction(formData: FormData) {
   if (!user) {
     return { error: "Those credentials aren’t in the vestry." };
   }
-  await setSessionCookie(user.id);
+  await setSessionCookie(toPublicUser(user));
   redirect("/home");
 }
 
@@ -28,7 +28,7 @@ export async function demoLoginAction(email: string): Promise<void> {
   const store = await readStore();
   const user = store.users.find((u) => u.email === email);
   if (!user) return;
-  await setSessionCookie(user.id);
+  await setSessionCookie(toPublicUser(user));
   redirect("/home");
 }
 

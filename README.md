@@ -71,8 +71,8 @@ See `.env.example`.
 
 Runtime data:
 
-- `data/store.json` — created from seed on first read; gitignored
-- `data/uploads/` — audio files (`mp3`, `m4a`, `wav`)
+- Locally: `data/store.json` (created from seed on first read; gitignored) and `data/uploads/`
+- On Vercel: in-memory seed plus `/tmp` (preview instances reset on cold start). Seed rehearsal audio is at `public/demo/harbor-rehearsal.wav`.
 
 Directors can restore Harbor Church from **Settings → Reset demo data**.
 
@@ -96,4 +96,6 @@ data/uploads/   rehearsal audio
 
 ## Notes
 
-This is a local-first MVP. The JSON store is not a multi-instance production database. Set `SESSION_SECRET` before putting it on the public internet.
+This is a local-first MVP. The JSON store is not a multi-instance production database. Vercel previews keep Harbor Church in memory so the build never writes `data/` on a read-only serverless filesystem. Set `SESSION_SECRET` before putting it on the public internet.
+
+`vercel.json` pins the framework to **nextjs** and the build command to `npm run build`. Do not set Output Directory to `public` — Next.js uses `.next` plus serverless functions. If a dashboard override still forces `public`, clear **Project Settings → Build & Output → Output Directory** and leave it empty.
