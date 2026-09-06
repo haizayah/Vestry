@@ -129,7 +129,10 @@ export function PlanWorkspace({
                     ) : null}
                   </div>
                   <div className="space-y-4 px-5 py-5">
-                    {resolved.body ? <p className="text-ink-soft">{resolved.body}</p> : null}
+                    {resolved.body &&
+                    !(director && (item.type === "announcement" || item.type === "sermon" || item.type === "notes")) ? (
+                      <p className="text-ink-soft">{resolved.body}</p>
+                    ) : null}
                     {resolved.song?.notes ? (
                       <p className="text-sm text-muted">{resolved.song.notes}</p>
                     ) : null}
@@ -141,15 +144,20 @@ export function PlanWorkspace({
                       </Link>
                     ) : null}
                     {director && (item.type === "announcement" || item.type === "sermon" || item.type === "notes") ? (
-                      <form action={updatePlanItemAction} className="space-y-3">
-                        <input type="hidden" name="planId" value={plan.id} />
-                        <input type="hidden" name="itemId" value={item.id} />
-                        <input name="title" defaultValue={item.title} className="field" />
-                        <textarea name="body" defaultValue={item.body} rows={3} className="field" />
-                        <button className="btn btn-ghost" type="submit">
-                          Update
-                        </button>
-                      </form>
+                      <details className="group">
+                        <summary className="cursor-pointer text-sm text-sage">
+                          {resolved.body || "Add copy"}
+                        </summary>
+                        <form action={updatePlanItemAction} className="mt-3 space-y-3">
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <input name="title" defaultValue={item.title} className="field" />
+                          <textarea name="body" defaultValue={item.body} rows={3} className="field" />
+                          <button className="btn btn-ghost" type="submit">
+                            Update
+                          </button>
+                        </form>
+                      </details>
                     ) : null}
                   </div>
                 </li>

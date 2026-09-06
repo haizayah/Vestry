@@ -14,10 +14,6 @@ async function ensureDirs() {
   await fs.mkdir(UPLOAD_DIR, { recursive: true });
 }
 
-export function uploadDir() {
-  return UPLOAD_DIR;
-}
-
 export async function readStore(): Promise<StoreData> {
   await ensureDirs();
   try {

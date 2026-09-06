@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { getSession } from "@/lib/auth";
-import { uploadDir } from "@/lib/store";
 
 const TYPES: Record<string, string> = {
   ".mp3": "audio/mpeg",
@@ -21,7 +20,7 @@ export async function GET(
 
   const { filename } = await params;
   const safe = path.basename(filename);
-  const filePath = path.join(uploadDir(), safe);
+  const filePath = path.join(process.cwd(), "data", "uploads", safe);
 
   try {
     const data = await fs.readFile(filePath);

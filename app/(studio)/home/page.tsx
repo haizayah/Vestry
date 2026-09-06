@@ -73,7 +73,9 @@ export default async function HomePage() {
                     {formatShortDate(plan.date)} · {plan.serviceTime}
                   </p>
                   <h3 className="font-serif text-2xl">{plan.name}</h3>
-                  <p className="mt-1 text-sm text-ink-soft">{plan.items.length} items in the order</p>
+                  <p className="mt-1 text-sm text-ink-soft">
+                    {plan.items.length} {plan.items.length === 1 ? "item" : "items"} in the order
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="chip">

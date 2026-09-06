@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { demoLoginAction, loginAction } from "@/lib/actions";
+import { demoDirectorLoginAction, demoMemberLoginAction, loginAction } from "@/lib/actions";
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(
@@ -33,20 +33,12 @@ export function LoginForm() {
       <div className="hairline" />
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <form
-          action={async () => {
-            await demoLoginAction("director@harbor.church");
-          }}
-        >
+        <form action={demoDirectorLoginAction}>
           <button type="submit" className="btn btn-ghost w-full">
             Director demo
           </button>
         </form>
-        <form
-          action={async () => {
-            await demoLoginAction("member@harbor.church");
-          }}
-        >
+        <form action={demoMemberLoginAction}>
           <button type="submit" className="btn btn-ghost w-full">
             Member demo
           </button>

@@ -32,6 +32,14 @@ export async function demoLoginAction(email: string): Promise<void> {
   redirect("/home");
 }
 
+export async function demoDirectorLoginAction(): Promise<void> {
+  await demoLoginAction("director@harbor.church");
+}
+
+export async function demoMemberLoginAction(): Promise<void> {
+  await demoLoginAction("member@harbor.church");
+}
+
 export async function logoutAction() {
   await clearSessionCookie();
   redirect("/");
