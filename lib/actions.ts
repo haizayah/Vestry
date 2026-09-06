@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearSessionCookie, requireRole, requireSession, setSessionCookie, toPublicUser } from "./auth";
-import { isISODate } from "./lockouts";
 import { newId, readStore, resetStore, updateStore } from "./store";
 import type { AssignmentStatus, PlanItem, PlanItemType } from "./types";
 
@@ -152,6 +151,7 @@ export async function updatePlanMetaAction(formData: FormData) {
     plan.date = String(formData.get("date") || plan.date);
     plan.serviceTime = String(formData.get("serviceTime") || plan.serviceTime).trim();
     plan.notes = String(formData.get("notes") || "").trim();
+    // Warn-only: lockout overlap on the (possibly new) date never rejects this write.
   });
   refreshApp();
 }
@@ -267,6 +267,7 @@ export async function assignPersonAction(formData: FormData) {
     if (!plan) throw new Error("Plan not found");
     if (!store.people.some((p) => p.id === personId)) throw new Error("Person not found");
     if (plan.assignments.some((a) => a.personId === personId && a.position === position)) return;
+    // Warn-only: a lockout covering plan.date must not block assign.
     plan.assignments.push({
       id: newId("as"),
       personId,
@@ -335,40 +336,3 @@ export async function updateChurchAction(formData: FormData): Promise<void> {
   refreshApp();
 }
 
-export async function createLockoutAction(formData: FormData): Promise<void> {
-  const session = await requireSession();
-  const start = String(formData.get("start") || "").trim();
-  const end = String(formData.get("end") || "").trim();
-  const note = String(formData.get("note") || "").trim();
-  if (!isISODate(start) || !isISODate(end) || end < start) return;
-
-  await updateStore((store) => {
-    const person = store.people.find((entry) => entry.userId === session.id);
-    if (!person) throw new Error("Forbidden");
-    store.lockouts.push({
-      id: newId("lock"),
-      personId: person.id,
-      userId: session.id,
-      start,
-      end,
-      note,
-      createdAt: new Date().toISOString(),
-    });
-  });
-  refreshApp();
-}
-
-export async function deleteLockoutAction(formData: FormData): Promise<void> {
-  const session = await requireSession();
-  const id = String(formData.get("id") || "");
-  await updateStore((store) => {
-    const lockout = store.lockouts.find((entry) => entry.id === id);
-    if (!lockout) throw new Error("Lockout not found");
-    const person = store.people.find((entry) => entry.userId === session.id);
-    if (lockout.userId !== session.id || lockout.personId !== person?.id) {
-      throw new Error("Forbidden");
-    }
-    store.lockouts = store.lockouts.filter((entry) => entry.id !== id);
-  });
-  refreshApp();
-}

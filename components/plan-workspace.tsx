@@ -12,18 +12,8 @@ import {
   updatePlanItemAction,
   updatePlanMetaAction,
 } from "@/lib/actions";
-import { lockoutTooltip, lockoutsForPersonOnDate } from "@/lib/lockouts";
 import { audioSrc, hasYouTube, resolveItem } from "@/lib/media";
-import {
-  ITEM_LABELS,
-  POSITIONS,
-  type Lockout,
-  type Person,
-  type Plan,
-  type PlanItemType,
-  type PublicUser,
-  type Song,
-} from "@/lib/types";
+import { ITEM_LABELS, POSITIONS, type Person, type Plan, type PlanItemType, type PublicUser, type Song } from "@/lib/types";
 import { AudioUploader } from "./audio-uploader";
 import { ConflictChip } from "./conflict-chip";
 import { RehearsalDock } from "./rehearsal-dock";
@@ -33,13 +23,13 @@ export function PlanWorkspace({
   songs,
   people,
   user,
-  lockouts,
+  assignmentConflicts,
 }: {
   plan: Plan;
   songs: Song[];
   people: Person[];
   user: PublicUser;
-  lockouts: Lockout[];
+  assignmentConflicts: Record<string, string>;
 }) {
   const director = user.role === "director";
   const me = people.find((p) => p.userId === user.id);
@@ -251,7 +241,7 @@ export function PlanWorkspace({
             {plan.assignments.map((assignment) => {
               const person = people.find((p) => p.id === assignment.personId);
               const mine = me?.id === assignment.personId;
-              const hits = director ? lockoutsForPersonOnDate(lockouts, assignment.personId, plan.date) : [];
+              const conflictTooltip = director ? assignmentConflicts[assignment.id] : undefined;
               return (
                 <li key={assignment.id} className="border-b border-line/70 pb-3 last:border-0">
                   <div className="flex items-start justify-between gap-2">
@@ -260,7 +250,7 @@ export function PlanWorkspace({
                       <p className="text-sm text-muted">{assignment.position}</p>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-1">
-                      {hits.length > 0 ? <ConflictChip tooltip={lockoutTooltip(hits)} /> : null}
+                      {conflictTooltip ? <ConflictChip tooltip={conflictTooltip} /> : null}
                       <span
                         className={`chip ${
                           assignment.status === "accepted"

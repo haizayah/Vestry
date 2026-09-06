@@ -3,33 +3,19 @@ import { redirect } from "next/navigation";
 import { CalendarView } from "@/components/calendar-view";
 import { getSession } from "@/lib/auth";
 import { todayISO } from "@/lib/format";
-import { readStore } from "@/lib/store";
-import type { CalendarEvent, CalendarPlan } from "@/lib/calendar";
-import { conflictsForPlan, visibleLockouts } from "@/lib/lockouts";
+import { loadCalendarPlans } from "@/lib/lockout-api";
+import type { CalendarEvent } from "@/lib/calendar";
 
 export const metadata: Metadata = { title: "Calendar" };
 
 export default async function CalendarPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  const store = await readStore();
-  const person = store.people.find((entry) => entry.userId === session.id);
-
-  const lockouts = visibleLockouts(store.lockouts, session);
-  const plans: CalendarPlan[] = store.plans.map((plan) => ({
-    id: plan.id,
-    name: plan.name,
-    date: plan.date,
-    serviceTime: plan.serviceTime,
-    assigned: person ? plan.assignments.some((row) => row.personId === person.id) : false,
-    conflicts: conflictsForPlan(plan, lockouts, store.people),
-  }));
-
   const events: CalendarEvent[] = [];
 
   return (
     <CalendarView
-      plans={plans}
+      plans={await loadCalendarPlans()}
       events={events}
       today={todayISO()}
       canCreate={session.role === "director"}

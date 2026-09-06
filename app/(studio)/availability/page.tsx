@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createLockoutAction, deleteLockoutAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
+import { createLockoutAction, deleteLockoutAction, listOwnLockouts, updateLockoutAction } from "@/lib/lockout-api";
 import { formatLockoutRange } from "@/lib/lockouts";
+import { personOwnedBySession } from "@/lib/lockout-access";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Availability" };
@@ -11,10 +12,8 @@ export default async function AvailabilityPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
-  const person = store.people.find((entry) => entry.userId === session.id);
-  const mine = store.lockouts
-    .filter((lockout) => lockout.userId === session.id)
-    .sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end));
+  const person = personOwnedBySession(store, session);
+  const mine = await listOwnLockouts();
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -65,17 +64,67 @@ export default async function AvailabilityPage() {
           ) : (
             <ul className="space-y-3">
               {mine.map((lockout) => (
-                <li key={lockout.id} className="paper-card flex items-start justify-between gap-3 rounded-3xl px-5 py-4">
-                  <div>
-                    <p className="font-serif text-xl">{formatLockoutRange(lockout.start, lockout.end)}</p>
-                    {lockout.note ? <p className="mt-1 text-sm text-ink-soft">{lockout.note}</p> : null}
+                <li key={lockout.id} className="paper-card space-y-3 rounded-3xl px-5 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-serif text-xl">{formatLockoutRange(lockout.start, lockout.end)}</p>
+                      {lockout.note ? <p className="mt-1 text-sm text-ink-soft">{lockout.note}</p> : null}
+                    </div>
+                    <form action={deleteLockoutAction}>
+                      <input type="hidden" name="id" value={lockout.id} />
+                      <button className="btn btn-danger px-3 py-1.5 text-sm" type="submit">
+                        Delete
+                      </button>
+                    </form>
                   </div>
-                  <form action={deleteLockoutAction}>
-                    <input type="hidden" name="id" value={lockout.id} />
-                    <button className="btn btn-danger px-3 py-1.5 text-sm" type="submit">
-                      Delete
-                    </button>
-                  </form>
+                  <details>
+                    <summary className="cursor-pointer text-sm text-wine">Edit dates</summary>
+                    <form action={updateLockoutAction} className="mt-3 space-y-3">
+                      <input type="hidden" name="id" value={lockout.id} />
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className="field-label" htmlFor={`edit-start-${lockout.id}`}>
+                            Start date
+                          </label>
+                          <input
+                            id={`edit-start-${lockout.id}`}
+                            name="start"
+                            type="date"
+                            required
+                            defaultValue={lockout.start}
+                            className="field"
+                          />
+                        </div>
+                        <div>
+                          <label className="field-label" htmlFor={`edit-end-${lockout.id}`}>
+                            End date
+                          </label>
+                          <input
+                            id={`edit-end-${lockout.id}`}
+                            name="end"
+                            type="date"
+                            required
+                            defaultValue={lockout.end}
+                            className="field"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="field-label" htmlFor={`edit-note-${lockout.id}`}>
+                          Note <span className="normal-case tracking-normal text-muted">(optional)</span>
+                        </label>
+                        <input
+                          id={`edit-note-${lockout.id}`}
+                          name="note"
+                          defaultValue={lockout.note}
+                          className="field"
+                        />
+                      </div>
+                      <button className="btn btn-ghost" type="submit">
+                        Save changes
+                      </button>
+                    </form>
+                  </details>
                 </li>
               ))}
             </ul>

@@ -1,5 +1,5 @@
 import { formatShortDate } from "./format";
-import type { Lockout, Person, Plan, PublicUser } from "./types";
+import type { Lockout, Person, Plan } from "./types";
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -15,11 +15,6 @@ export function isISODate(value: string): boolean {
 
 export function lockoutCoversDate(lockout: Pick<Lockout, "start" | "end">, iso: string): boolean {
   return iso >= lockout.start && iso <= lockout.end;
-}
-
-export function visibleLockouts(lockouts: Lockout[], user: PublicUser): Lockout[] {
-  if (user.role === "director") return lockouts;
-  return lockouts.filter((lockout) => lockout.userId === user.id);
 }
 
 export function lockoutsForPersonOnDate(lockouts: Lockout[], personId: string, iso: string): Lockout[] {

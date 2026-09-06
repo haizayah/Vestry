@@ -85,7 +85,7 @@ Directors can restore Harbor Church from **Settings → Reset demo data**.
 4. Upload rehearsal audio on a song — it plays on the song page and anywhere that song is on a setlist.
 5. Assign people to positions.
 6. Sign out, enter as **member**, open the plan, accept/decline, and rehearse in-app.
-7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked.
+7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked. Lockout create/list/update/delete and conflict compute run in the server action layer with ownership checks; directors may read all lockouts for warnings only.
 
 ## Project layout
 
