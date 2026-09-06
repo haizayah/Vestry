@@ -15,6 +15,21 @@
   --rose: #8c4d45;
   --good: #3d6b4f;
   --on-deep: #f6f1e8;
+  /* Path A §3 dock geometry — keep wine/parchment tokens unchanged */
+  --dock-nav-clearance: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  --dock-max-height: min(48vh, 26rem);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --dock-nav-clearance: 1.5rem;
+  }
+}
+
+@media (max-height: 640px) {
+  :root {
+    --dock-max-height: min(72vh, calc(100dvh - var(--dock-nav-clearance) - 4.5rem));
+  }
 }
 
 @theme inline {
@@ -189,6 +204,38 @@ body {
 
 .chip.text-rose {
   color: var(--rose);
+}
+
+.rehearsal-dock {
+  position: fixed;
+  inset-inline: 0.75rem;
+  bottom: var(--dock-nav-clearance);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  max-height: var(--dock-max-height);
+  min-height: 0;
+}
+
+.rehearsal-dock-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: var(--dock-max-height);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rehearsal-dock-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem;
+}
+
+.has-rehearsal-dock {
+  padding-bottom: calc(var(--dock-max-height) + 0.75rem);
 }
 
 @keyframes enter-rise {
