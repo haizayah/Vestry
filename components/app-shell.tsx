@@ -9,6 +9,7 @@ import type { PublicUser } from "@/lib/types";
 const NAV = [
   { href: "/home", label: "Home" },
   { href: "/plans", label: "Plans" },
+  { href: "/calendar", label: "Calendar" },
   { href: "/songs", label: "Songs" },
   { href: "/team", label: "Team" },
   { href: "/settings", label: "Settings" },
@@ -78,14 +79,14 @@ export function AppShell({
         </div>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-card/95 px-1 py-2 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-card/95 px-0.5 py-2 backdrop-blur md:hidden">
         {NAV.map((item) => {
           const active = isActive(pathname, item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-lg px-1 py-2 text-center text-[0.7rem] tracking-wide ${
+              className={`rounded-lg px-0.5 py-2 text-center text-[0.62rem] tracking-wide ${
                 active ? "bg-wine/10 text-wine" : "text-muted"
               }`}
             >
