@@ -42,7 +42,7 @@ export function PlanWorkspace({
       : null;
 
   return (
-    <div className={focusedPlayback ? "pb-[min(48vh,26rem)]" : undefined}>
+    <div className={focusedPlayback ? "has-rehearsal-dock" : undefined}>
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
         {director ? (

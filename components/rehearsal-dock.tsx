@@ -16,11 +16,11 @@ export function RehearsalDock({
 }) {
   return (
     <aside
-      className="fixed inset-x-3 bottom-[4.75rem] z-20 max-h-[48vh] overflow-y-auto md:bottom-6 md:left-auto md:right-6 md:w-[min(100%,24rem)]"
+      className="rehearsal-dock"
       aria-label="Now rehearsing"
     >
-      <div className="paper-card rounded-3xl p-4">
-        <div className="flex items-start justify-between gap-3">
+      <div className="paper-card rehearsal-dock-card rounded-3xl p-4">
+        <div className="flex shrink-0 items-start justify-between gap-3">
           <div>
             <p className="field-label">Now rehearsing</p>
             <p className="font-serif text-xl leading-tight">{title}</p>
@@ -29,7 +29,7 @@ export function RehearsalDock({
             Close
           </button>
         </div>
-        <div className="mt-3 flex flex-col gap-3">
+        <div className="rehearsal-dock-body mt-3 flex flex-col gap-3">
           {youtubeUrl ? <YouTubePlayer url={youtubeUrl} title={title} /> : null}
           {audio ? <AudioPlayer src={audio} title={`${title} — rehearsal`} framed={false} /> : null}
         </div>
