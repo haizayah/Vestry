@@ -138,7 +138,7 @@ export function CalendarView({
                   if (option === "week" && selected) setCursor(selected);
                 }}
               >
-                {option}
+                {option === "month" ? "Month" : "Week"}
               </button>
             );
           })}
@@ -182,7 +182,11 @@ export function CalendarView({
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-6 md:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div
+        className={`mt-5 grid gap-6 ${
+          selected ? "md:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem]" : ""
+        }`}
+      >
         {view === "month" ? (
           <MonthGrid
             days={range.days}
@@ -204,13 +208,15 @@ export function CalendarView({
           />
         )}
 
-        <DayPanel
-          date={selected}
-          plans={selectedPlans}
-          events={selectedEvents}
-          desktop
-          onClose={() => setSelected(null)}
-        />
+        {selected ? (
+          <DayPanel
+            date={selected}
+            plans={selectedPlans}
+            events={selectedEvents}
+            desktop
+            onClose={() => setSelected(null)}
+          />
+        ) : null}
       </div>
 
       {selected ? (
@@ -253,6 +259,7 @@ function PlanChip({ plan, compact }: { plan: CalendarPlan; compact?: boolean }) 
   return (
     <Link
       href={`/plans/${plan.id}`}
+      title={plan.name}
       onClick={(event) => event.stopPropagation()}
       className="block truncate rounded-full bg-wine-mid px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-on-deep hover:bg-wine"
     >

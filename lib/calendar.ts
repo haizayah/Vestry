@@ -75,12 +75,13 @@ export function formatWeekTitle(iso: string): string {
   const days = weekDays(iso);
   const start = dateFromISO(days[0]);
   const end = dateFromISO(days[6]);
-  const left = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  const right =
-    start.getMonth() === end.getMonth()
-      ? end.toLocaleDateString("en-US", { day: "numeric", year: "numeric" })
-      : end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  return `${left}–${right}`;
+  const startMonth = start.toLocaleDateString("en-US", { month: "short" });
+  const endMonth = end.toLocaleDateString("en-US", { month: "short" });
+  const year = end.getFullYear();
+  if (start.getMonth() === end.getMonth()) {
+    return `${startMonth} ${start.getDate()}–${end.getDate()}, ${year}`;
+  }
+  return `${startMonth} ${start.getDate()}–${endMonth} ${end.getDate()}, ${year}`;
 }
 
 export function parseServiceHour(serviceTime: string): number | null {
