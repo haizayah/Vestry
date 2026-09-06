@@ -19,7 +19,7 @@ export default async function SongsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="field-label">Library</p>
-          <h1 className="font-serif text-4xl md:text-5xl">Songs</h1>
+          <h1 className="font-serif text-4xl tracking-tight md:text-5xl">Songs</h1>
         </div>
         {session.role === "director" ? (
           <Link href="/songs/new" className="btn btn-primary">

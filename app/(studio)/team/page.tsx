@@ -17,7 +17,7 @@ export default async function TeamPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <p className="field-label">{store.churchName}</p>
-      <h1 className="font-serif text-4xl md:text-5xl">Team</h1>
+      <h1 className="font-serif text-4xl tracking-tight md:text-5xl">Team</h1>
       <p className="mt-3 max-w-xl text-ink-soft">
         A light roster for Sunday positions. Members sign in to accept or decline from the plan itself.
       </p>
@@ -43,7 +43,7 @@ export default async function TeamPage() {
                 <ul className="mt-4 space-y-2">
                   {assignments.map(({ plan, assignment }) => (
                     <li key={assignment.id} className="flex items-center justify-between text-sm">
-                      <Link href={`/plans/${plan.id}`} className="text-sage underline-offset-4 hover:underline">
+                      <Link href={`/plans/${plan.id}`} className="text-wine underline-offset-4 hover:underline">
                         {plan.name} · {formatShortDate(plan.date)}
                       </Link>
                       <span className="text-muted">

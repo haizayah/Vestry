@@ -48,7 +48,7 @@ export function AudioUploader({
         </label>
         {filename ? (
           <label className="flex items-center gap-2 text-sm text-muted">
-            <input type="checkbox" name="clearAudio" className="accent-sage" />
+            <input type="checkbox" name="clearAudio" className="accent-wine" />
             Remove audio
           </label>
         ) : null}

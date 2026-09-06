@@ -23,8 +23,8 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <p className="field-label">{store.churchName}</p>
-      <h1 className="mt-2 font-serif text-4xl md:text-5xl">Good morning, {firstName(session.name)}.</h1>
+      <p className="text-[0.72rem] uppercase tracking-[0.16em] text-gold">{store.churchName}</p>
+      <h1 className="mt-2 font-serif text-4xl tracking-tight md:text-5xl">Good morning, {firstName(session.name)}.</h1>
       <p className="mt-3 max-w-xl text-ink-soft">
         {session.role === "director"
           ? "The room is ready. Draft a plan, finish the set, or see what’s still missing media."
@@ -32,17 +32,17 @@ export default async function HomePage() {
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <article className="paper-card rounded-3xl p-5">
+        <article className="paper-card rounded-3xl p-6">
           <p className="field-label">Upcoming plans</p>
-          <p className="font-serif text-4xl">{upcoming.length}</p>
+          <p className="font-serif text-4xl tracking-tight">{upcoming.length}</p>
         </article>
-        <article className="paper-card rounded-3xl p-5">
+        <article className="paper-card rounded-3xl p-6">
           <p className="field-label">Songs in library</p>
-          <p className="font-serif text-4xl">{store.songs.length}</p>
+          <p className="font-serif text-4xl tracking-tight">{store.songs.length}</p>
         </article>
-        <article className="paper-card rounded-3xl p-5">
+        <article className="paper-card rounded-3xl p-6">
           <p className="field-label">{session.role === "director" ? "Awaiting replies" : "Your pending"}</p>
-          <p className="font-serif text-4xl">
+          <p className="font-serif text-4xl tracking-tight">
             {session.role === "director"
               ? store.plans.reduce((n, p) => n + p.assignments.filter((a) => a.status === "pending").length, 0)
               : pending.length}
@@ -53,7 +53,7 @@ export default async function HomePage() {
       <div className="mt-10 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="field-label">This season</p>
-          <h2 className="font-serif text-3xl">Upcoming Sundays</h2>
+          <h2 className="font-serif text-3xl tracking-tight">Upcoming Sundays</h2>
         </div>
         {session.role === "director" ? (
           <Link href="/plans/new" className="btn btn-primary">
@@ -66,11 +66,11 @@ export default async function HomePage() {
         {upcoming.map((plan) => {
           const ready = mediaReadyCount(plan, store.songs);
           return (
-            <Link key={plan.id} href={`/plans/${plan.id}`} className="paper-card block rounded-3xl p-5 transition hover:-translate-y-0.5">
+            <Link key={plan.id} href={`/plans/${plan.id}`} className="paper-card block rounded-3xl p-6 transition hover:-translate-y-0.5">
               <p className="text-sm text-muted">
                 {formatShortDate(plan.date)} · {plan.serviceTime}
               </p>
-              <h3 className="font-serif text-2xl">{plan.name}</h3>
+              <h3 className="font-serif text-2xl tracking-tight">{plan.name}</h3>
               <p className="mt-1 text-sm text-ink-soft">
                 {plan.items.length} {plan.items.length === 1 ? "item" : "items"} in the order
               </p>
@@ -93,7 +93,7 @@ export default async function HomePage() {
       {session.role === "member" ? (
         <section className="mt-12">
           <p className="field-label">Your schedule</p>
-          <h2 className="font-serif text-3xl">Invites</h2>
+          <h2 className="font-serif text-3xl tracking-tight">Invites</h2>
           <ul className="mt-4 space-y-3">
             {myAssignments.map(({ plan, assignment }) => (
               <li key={assignment.id} className="paper-card flex items-center justify-between rounded-2xl px-5 py-4">

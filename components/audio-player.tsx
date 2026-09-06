@@ -81,7 +81,7 @@ export function AudioPlayer({
           step={0.1}
           value={progress}
           onChange={seek}
-          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-paper-deep accent-sage"
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-paper-deep accent-wine"
           aria-label="Seek audio"
         />
         <span className="w-10 text-right text-xs tabular-nums text-muted">{formatTime(duration)}</span>
