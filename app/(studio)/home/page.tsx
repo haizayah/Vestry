@@ -67,24 +67,20 @@ export default async function HomePage() {
           const ready = mediaReadyCount(plan, store.songs);
           return (
             <Link key={plan.id} href={`/plans/${plan.id}`} className="paper-card block rounded-3xl p-5 transition hover:-translate-y-0.5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-muted">
-                    {formatShortDate(plan.date)} · {plan.serviceTime}
-                  </p>
-                  <h3 className="font-serif text-2xl">{plan.name}</h3>
-                  <p className="mt-1 text-sm text-ink-soft">
-                    {plan.items.length} {plan.items.length === 1 ? "item" : "items"} in the order
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="chip">
-                    Media {ready.ready}/{ready.total || 0}
-                  </span>
-                  <span className="chip">
-                    Team {plan.assignments.filter((a) => a.status === "accepted").length}/{plan.assignments.length}
-                  </span>
-                </div>
+              <p className="text-sm text-muted">
+                {formatShortDate(plan.date)} · {plan.serviceTime}
+              </p>
+              <h3 className="font-serif text-2xl">{plan.name}</h3>
+              <p className="mt-1 text-sm text-ink-soft">
+                {plan.items.length} {plan.items.length === 1 ? "item" : "items"} in the order
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <span className="chip w-full justify-center">
+                  Media {ready.ready}/{ready.total || 0}
+                </span>
+                <span className="chip w-full justify-center">
+                  Team {plan.assignments.filter((a) => a.status === "accepted").length}/{plan.assignments.length}
+                </span>
               </div>
             </Link>
           );

@@ -14,9 +14,11 @@ function formatTime(seconds: number) {
 export function AudioPlayer({
   src,
   title = "Rehearsal audio",
+  framed = true,
 }: {
   src: string;
   title?: string;
+  framed?: boolean;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -50,7 +52,7 @@ export function AudioPlayer({
   }
 
   return (
-    <div className="paper-card rounded-2xl px-4 py-4">
+    <div className={framed ? "paper-card rounded-2xl px-4 py-4" : ""}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <p className="field-label mb-1">In-app audio</p>
