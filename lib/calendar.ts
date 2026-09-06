@@ -67,18 +67,35 @@ export function sameMonth(iso: string, cursor: string): boolean {
   return iso.slice(0, 7) === cursor.slice(0, 7);
 }
 
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+const MONTHS_LONG = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
+
 export function formatMonthTitle(iso: string): string {
-  return dateFromISO(iso).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const date = dateFromISO(iso);
+  return `${MONTHS_LONG[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 export function formatWeekTitle(iso: string): string {
   const days = weekDays(iso);
   const start = dateFromISO(days[0]);
   const end = dateFromISO(days[6]);
-  const startMonth = start.toLocaleDateString("en-US", { month: "short" });
-  const endMonth = end.toLocaleDateString("en-US", { month: "short" });
+  const startMonth = MONTHS_SHORT[start.getMonth()];
+  const endMonth = MONTHS_SHORT[end.getMonth()];
   const year = end.getFullYear();
-  if (start.getMonth() === end.getMonth()) {
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
     return `${startMonth} ${start.getDate()}–${end.getDate()}, ${year}`;
   }
   return `${startMonth} ${start.getDate()}–${endMonth} ${end.getDate()}, ${year}`;
