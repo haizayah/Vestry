@@ -1,0 +1,308 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import {
+  addPlanItemAction,
+  assignPersonAction,
+  movePlanItemAction,
+  removePlanItemAction,
+  respondAssignmentAction,
+  unassignPersonAction,
+  updatePlanItemAction,
+  updatePlanMetaAction,
+} from "@/lib/actions";
+import { audioSrc, hasYouTube, resolveItem } from "@/lib/media";
+import { ITEM_LABELS, POSITIONS, type Person, type Plan, type PlanItemType, type PublicUser, type Song } from "@/lib/types";
+import { AudioPlayer } from "./audio-player";
+import { AudioUploader } from "./audio-uploader";
+import { YouTubePlayer } from "./youtube-player";
+
+export function PlanWorkspace({
+  plan,
+  songs,
+  people,
+  user,
+}: {
+  plan: Plan;
+  songs: Song[];
+  people: Person[];
+  user: PublicUser;
+}) {
+  const director = user.role === "director";
+  const me = people.find((p) => p.userId === user.id);
+  const [addType, setAddType] = useState<PlanItemType>("song");
+
+  return (
+    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="space-y-6">
+        {director ? (
+          <form action={updatePlanMetaAction} className="paper-card grid gap-4 rounded-3xl p-5 md:grid-cols-2">
+            <input type="hidden" name="id" value={plan.id} />
+            <div>
+              <label className="field-label">Name</label>
+              <input name="name" defaultValue={plan.name} className="field" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="field-label">Date</label>
+                <input type="date" name="date" defaultValue={plan.date} className="field" />
+              </div>
+              <div>
+                <label className="field-label">Time</label>
+                <input name="serviceTime" defaultValue={plan.serviceTime} className="field" />
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <label className="field-label">Director notes</label>
+              <textarea name="notes" defaultValue={plan.notes} rows={2} className="field" />
+            </div>
+            <div className="md:col-span-2 flex justify-end">
+              <button className="btn btn-ghost" type="submit">
+                Save details
+              </button>
+            </div>
+          </form>
+        ) : plan.notes ? (
+          <div className="paper-card rounded-3xl p-5 text-ink-soft">
+            <p className="field-label">Director notes</p>
+            <p>{plan.notes}</p>
+          </div>
+        ) : null}
+
+        <section>
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <p className="field-label">Order of service</p>
+              <h2 className="font-serif text-3xl">Setlist</h2>
+            </div>
+            <span className="chip">{plan.items.length} items</span>
+          </div>
+
+          <ol className="space-y-4">
+            {plan.items.map((item, index) => {
+              const resolved = resolveItem(item, songs);
+              const youtube = hasYouTube(resolved.youtubeUrl) ? resolved.youtubeUrl : "";
+              const audio = audioSrc(resolved.audioFilename);
+              return (
+                <li key={item.id} className="paper-card overflow-hidden rounded-3xl">
+                  <div className="flex items-start justify-between gap-3 border-b border-line/70 px-5 py-4">
+                    <div>
+                      <p className="field-label mb-1">
+                        {String(index + 1).padStart(2, "0")} · {ITEM_LABELS[item.type]}
+                      </p>
+                      <h3 className="font-serif text-2xl leading-tight">{resolved.title}</h3>
+                      {resolved.song ? (
+                        <p className="mt-1 text-sm text-muted">
+                          {resolved.song.artist}
+                          {resolved.song.key ? ` · ${resolved.song.key}` : ""}
+                          {resolved.song.tempo ? ` · ${resolved.song.tempo} bpm` : ""}
+                        </p>
+                      ) : null}
+                    </div>
+                    {director ? (
+                      <div className="flex shrink-0 gap-1">
+                        <form action={movePlanItemAction}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <input type="hidden" name="direction" value="up" />
+                          <button className="btn btn-ghost px-3 py-2 text-sm" type="submit" aria-label="Move up">
+                            ↑
+                          </button>
+                        </form>
+                        <form action={movePlanItemAction}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <input type="hidden" name="direction" value="down" />
+                          <button className="btn btn-ghost px-3 py-2 text-sm" type="submit" aria-label="Move down">
+                            ↓
+                          </button>
+                        </form>
+                        <form action={removePlanItemAction}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <button className="btn btn-danger px-3 py-2 text-sm" type="submit" aria-label="Remove">
+                            ✕
+                          </button>
+                        </form>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="space-y-4 px-5 py-5">
+                    {resolved.body &&
+                    !(director && (item.type === "announcement" || item.type === "sermon" || item.type === "notes")) ? (
+                      <p className="text-ink-soft">{resolved.body}</p>
+                    ) : null}
+                    {resolved.song?.notes ? (
+                      <p className="text-sm text-muted">{resolved.song.notes}</p>
+                    ) : null}
+                    {youtube ? <YouTubePlayer url={youtube} title={resolved.title} /> : null}
+                    {audio ? <AudioPlayer src={audio} title={`${resolved.title} — rehearsal`} /> : null}
+                    {resolved.song ? (
+                      <Link href={`/songs/${resolved.song.id}`} className="text-sm text-sage underline-offset-4 hover:underline">
+                        Open in library
+                      </Link>
+                    ) : null}
+                    {director && (item.type === "announcement" || item.type === "sermon" || item.type === "notes") ? (
+                      <details className="group">
+                        <summary className="cursor-pointer text-sm text-sage">
+                          {resolved.body || "Add copy"}
+                        </summary>
+                        <form action={updatePlanItemAction} className="mt-3 space-y-3">
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <input name="title" defaultValue={item.title} className="field" />
+                          <textarea name="body" defaultValue={item.body} rows={3} className="field" />
+                          <button className="btn btn-ghost" type="submit">
+                            Update
+                          </button>
+                        </form>
+                      </details>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+
+        {director ? (
+          <form action={addPlanItemAction} className="paper-card space-y-4 rounded-3xl p-5">
+            <p className="field-label">Add to the order</p>
+            <input type="hidden" name="planId" value={plan.id} />
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(ITEM_LABELS) as PlanItemType[]).map((type) => (
+                <label key={type} className={`chip cursor-pointer ${addType === type ? "border-sage text-sage" : ""}`}>
+                  <input
+                    type="radio"
+                    name="type"
+                    value={type}
+                    checked={addType === type}
+                    onChange={() => setAddType(type)}
+                    className="sr-only"
+                  />
+                  {ITEM_LABELS[type]}
+                </label>
+              ))}
+            </div>
+            {addType === "song" ? (
+              <select name="songId" className="field" required>
+                <option value="">Choose from the library…</option>
+                {songs.map((song) => (
+                  <option key={song.id} value={song.id}>
+                    {song.title} — {song.artist}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input name="title" className="field" placeholder="Title" required={addType !== "sermon"} />
+            )}
+            {addType === "youtube" ? (
+              <input name="youtubeUrl" className="field" placeholder="YouTube URL" required />
+            ) : null}
+            {addType !== "song" && addType !== "youtube" && addType !== "media" ? (
+              <textarea name="body" rows={3} className="field" placeholder="Spoken copy, cues, or notes" />
+            ) : null}
+            {addType === "media" ? <AudioUploader /> : null}
+            <button className="btn btn-primary" type="submit">
+              Add item
+            </button>
+          </form>
+        ) : null}
+      </div>
+
+      <aside className="space-y-5">
+        <div className="paper-card rounded-3xl p-5">
+          <p className="field-label">Team</p>
+          <h2 className="mb-4 font-serif text-2xl">This Sunday</h2>
+          <ul className="space-y-3">
+            {plan.assignments.map((assignment) => {
+              const person = people.find((p) => p.id === assignment.personId);
+              const mine = me?.id === assignment.personId;
+              return (
+                <li key={assignment.id} className="border-b border-line/70 pb-3 last:border-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-medium">{person?.name ?? "Unknown"}</p>
+                      <p className="text-sm text-muted">{assignment.position}</p>
+                    </div>
+                    <span
+                      className={`chip ${
+                        assignment.status === "accepted"
+                          ? "border-good/30 text-good"
+                          : assignment.status === "declined"
+                            ? "border-rose/30 text-rose"
+                            : ""
+                      }`}
+                    >
+                      {assignment.status}
+                    </span>
+                  </div>
+                  {mine || director ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {assignment.status !== "accepted" ? (
+                        <form action={respondAssignmentAction}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="assignmentId" value={assignment.id} />
+                          <input type="hidden" name="status" value="accepted" />
+                          <button className="btn btn-ghost px-3 py-1.5 text-sm" type="submit">
+                            Accept
+                          </button>
+                        </form>
+                      ) : null}
+                      {assignment.status !== "declined" ? (
+                        <form action={respondAssignmentAction}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="assignmentId" value={assignment.id} />
+                          <input type="hidden" name="status" value="declined" />
+                          <button className="btn btn-ghost px-3 py-1.5 text-sm" type="submit">
+                            Decline
+                          </button>
+                        </form>
+                      ) : null}
+                      {director ? (
+                        <form action={unassignPersonAction}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="assignmentId" value={assignment.id} />
+                          <button className="btn btn-danger px-3 py-1.5 text-sm" type="submit">
+                            Remove
+                          </button>
+                        </form>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+            {plan.assignments.length === 0 ? <p className="text-sm text-muted">No one scheduled yet.</p> : null}
+          </ul>
+        </div>
+
+        {director ? (
+          <form action={assignPersonAction} className="paper-card space-y-3 rounded-3xl p-5">
+            <p className="field-label">Assign a person</p>
+            <input type="hidden" name="planId" value={plan.id} />
+            <select name="personId" className="field" required>
+              <option value="">Choose…</option>
+              {people.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+            <select name="position" className="field" defaultValue="Vocals">
+              {POSITIONS.map((position) => (
+                <option key={position} value={position}>
+                  {position}
+                </option>
+              ))}
+            </select>
+            <button className="btn btn-primary w-full" type="submit">
+              Add to plan
+            </button>
+          </form>
+        ) : null}
+      </aside>
+    </div>
+  );
+}
