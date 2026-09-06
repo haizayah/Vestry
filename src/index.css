@@ -1,0 +1,40 @@
+:root {
+  --bg: #0f172a;
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --danger: #ef4444;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, #e0e7ff 0%, transparent 55%),
+    radial-gradient(1000px 500px at -10% 110%, #dbeafe 0%, transparent 50%),
+    #f8fafc;
+  min-height: 100vh;
+}
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: 0.9rem;
+}
