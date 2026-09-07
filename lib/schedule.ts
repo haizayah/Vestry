@@ -33,10 +33,8 @@ export function scheduleRows({
   const rows: ScheduleRow[] = [];
 
   for (const event of events) {
-    const upcoming = expandOccurrences(event).filter((occurrence) => occurrence.date >= today);
-    for (const occurrence of upcoming) {
-      pushAssignments(rows, event, occurrence, people, lockouts);
-    }
+    const next = expandOccurrences(event).find((occurrence) => occurrence.date >= today);
+    if (next) pushAssignments(rows, event, next, people, lockouts);
   }
 
   if (includePlans) {

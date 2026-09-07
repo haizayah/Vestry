@@ -88,10 +88,12 @@ export function expandOccurrences(event: Event, horizonISO?: string): EventOccur
 function expandDates(start: string, rule: RecurrenceRule, horizonISO?: string): string[] {
   const max = rule.ends.mode === "count" ? Math.min(rule.ends.count, MAX_OCCURRENCES) : MAX_OCCURRENCES;
   const until = rule.ends.mode === "until" ? rule.ends.until : (horizonISO ?? addMonthsISO(start, 24));
-  const dates: string[] = [];
+
+  const dates: string[] = [start];
+  if (dates.length >= max) return dates;
 
   if (rule.freq === "monthly") {
-    let cursor = start;
+    let cursor = addMonthsISO(start, rule.interval || 1);
     while (dates.length < max && cursor <= until) {
       dates.push(cursor);
       cursor = addMonthsISO(cursor, rule.interval || 1);
@@ -107,7 +109,7 @@ function expandDates(start: string, rule: RecurrenceRule, horizonISO?: string): 
   while (dates.length < max && guard < 400) {
     for (const weekday of weekdays) {
       const iso = addDaysISO(weekStart, weekday);
-      if (iso < start) continue;
+      if (iso <= start) continue;
       if (iso > until) return dates;
       dates.push(iso);
       if (dates.length >= max) return dates;

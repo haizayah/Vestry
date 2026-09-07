@@ -59,7 +59,7 @@ export function ModulePicker({
               type="button"
               onClick={() => chooseType(option)}
               className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
-                active ? "border-wine-deep bg-wine/[0.04] text-wine-deep" : "border-line bg-card text-ink-soft"
+                active ? "border-2 border-wine-deep bg-card text-wine-deep" : "border border-line bg-card text-ink-soft"
               }`}
             >
               {ORG_TYPE_LABELS[option]}

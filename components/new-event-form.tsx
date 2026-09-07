@@ -34,7 +34,7 @@ export function NewEventForm({
   }
 
   return (
-    <form action={createEventAction} className="space-y-5">
+    <form action={createEventAction} className="space-y-4">
       <div>
         <label className="field-label" htmlFor="title">
           Title
@@ -55,12 +55,7 @@ export function NewEventForm({
           <input id="time" name="time" defaultValue={defaultTime} className="field" />
         </div>
       </div>
-      <div>
-        <label className="field-label" htmlFor="location">
-          Location
-        </label>
-        <input id="location" name="location" defaultValue="Away vs Northside" className="field" />
-      </div>
+      <input type="hidden" name="location" value="Away vs Northside" />
 
       <div>
         <p className="field-label">Repeat</p>
@@ -180,9 +175,9 @@ export function NewEventModal({
   return (
     <div className="fixed inset-0 z-50 grid place-items-center px-4">
       <button type="button" className="absolute inset-0 bg-ink/35" aria-label="Close" onClick={onClose} />
-      <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[1.75rem] bg-card p-6 shadow-[0_24px_60px_-28px_rgba(28,25,20,0.55)] sm:p-8">
+      <div className="relative max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-[1.75rem] bg-card p-5 shadow-[0_24px_60px_-28px_rgba(28,25,20,0.55)] sm:p-7">
         <h2 className="font-serif text-4xl tracking-tight text-wine-deep">New event</h2>
-        <p className="mt-2 mb-6 text-ink-soft">Recurring create — Phase A. Assignments keep warn-only conflict badges.</p>
+        <p className="mt-2 mb-5 text-ink-soft">Recurring create — Phase A. Assignments keep warn-only conflict badges.</p>
         <NewEventForm defaultDate={defaultDate} onCancel={onClose} />
       </div>
     </div>
