@@ -14,7 +14,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession } from "./auth";
-import type { CalendarPlan } from "./calendar";
+import type { CalendarEvent, CalendarPlan } from "./calendar";
+import { expandOccurrences } from "./recurrence";
 import {
   assertOwnsLockout,
   bindLockoutOwner,
@@ -23,6 +24,7 @@ import {
   personOwnedBySession,
 } from "./lockout-access";
 import {
+  conflictsForAssignments,
   conflictsForPlan,
   isISODate,
   lockoutTooltip,
@@ -152,4 +154,40 @@ export async function loadCalendarPlans(): Promise<CalendarPlan[]> {
     assigned: person ? plan.assignments.some((row) => row.personId === person.id) : false,
     conflicts: conflictsForPlan(plan, lockouts, store.people),
   }));
+}
+
+/** Server-side calendar event occurrences. Conflict rows are computed here, not in the client. */
+export async function loadCalendarEvents(): Promise<CalendarEvent[]> {
+  const session = await requireSession();
+  const store = await readStore();
+  const person = personOwnedBySession(store, session);
+  const lockouts = lockoutsReadableForConflicts(store.lockouts, session, person);
+  return store.events.flatMap((event) =>
+    expandOccurrences(event).map((occurrence) => ({
+      id: `${event.id}:${occurrence.date}`,
+      title: event.title,
+      date: occurrence.date,
+      time: event.time,
+      href: `/events/${event.id}`,
+      assigned: person ? event.assignments.some((row) => row.personId === person.id) : false,
+      conflicts: conflictsForAssignments(event.assignments, occurrence.date, lockouts, store.people),
+    })),
+  );
+}
+
+/** Server-side conflict map for an event occurrence. Directors only; empty for members. */
+export async function computeEventAssignmentConflicts(eventId: string, iso: string): Promise<Record<string, string>> {
+  const session = await requireSession();
+  if (session.role !== "director") return {};
+  const store = await readStore();
+  const event = store.events.find((entry) => entry.id === eventId);
+  if (!event) return {};
+  const person = personOwnedBySession(store, session);
+  const lockouts = lockoutsReadableForConflicts(store.lockouts, session, person);
+  const result: Record<string, string> = {};
+  for (const assignment of event.assignments) {
+    const hits = lockoutsForPersonOnDate(lockouts, assignment.personId, iso);
+    if (hits.length) result[assignment.id] = lockoutTooltip(hits);
+  }
+  return result;
 }

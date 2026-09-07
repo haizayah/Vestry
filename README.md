@@ -1,8 +1,8 @@
 # Vestry
 
-A calm worship planning studio for music directors and teams. Plan Sunday in one place: song library, setlists, in-app rehearsal (YouTube + uploaded audio), and a light team schedule.
+A calm planning studio for directors and teams. Orgs pick a type and modules — Church + Worship stays the Harbor demo; Sports-style (Worship off) uses events, schedule, and people instead of setlists.
 
-Harbor Church ships as a demo church so you can walk the full Sunday workflow in minutes.
+Harbor Church ships as a demo so you can walk the full Sunday workflow, then toggle modules in Settings.
 
 ## What it is
 
@@ -12,17 +12,19 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 
 - Marketing landing at `/`
 - Demo auth with persisted session (director + member)
-- App shell: Home, Plans, Calendar, Songs, Team, Settings
-- Calendar month and week shells over Harbor plans, plus member blockouts and warn-only assignment conflicts
-- Song library CRUD (title, artist, key, tempo, notes, YouTube, audio)
-- Service plans with a reorderable order of service
+- Org type + modules (Calendar and People always on; Worship optional). Directors toggle in Settings → Modules
+- Module-aware shell: desktop sidebar + mobile dock / More. Plans and Songs hide when Worship is off (data stays)
+- Calendar month and week shells, plus member blockouts and warn-only assignment conflicts
+- Events with recurring create (weekly / biweekly / monthly). Occurrences expand server-side
+- Schedule home for assignments; Availability lockouts from #9
+- People roster at `/people` and `/people/[id]`
+- Adaptive Home: plan/media cards when Worship is on; event/assignment cards when off
+- Song library CRUD and service plans when Worship is on
 - YouTube and uploaded audio play **in-app** on song and plan pages
-- Team lite: assign positions; members accept or decline
-- Director dashboard: upcoming plans, quick create, media readiness
 
 **Out of scope**
 
-Giving, Check-ins, Groups, a full Calendar product (recurring, leads, chat, drag-drop, auto-scheduler), CCLI, native apps, Spotify/Apple Music APIs.
+Chat, Resources, Giving, Check-ins, leads depth, auto-scheduler, CCLI, native apps, Spotify/Apple Music APIs.
 
 ## Stack
 
@@ -41,7 +43,8 @@ Session is an HTTP-only cookie (30 days). The login page also has one-click demo
 
 - 12 songs (several with YouTube; *Goodness of God* includes a short rehearsal WAV)
 - 2 upcoming plans: **Sunday Gathering** (Sep 13, 2026) and **Harbor Sunday** (Sep 20, 2026)
-- A seven-person roster with assignments already on the plans
+- A Saturday League Match event series (weekly × 12) for the Events module
+- A seven-person roster with assignments already on the plans and the league match
 
 Jordan Ellis (member) has a pending invite on Sep 13, an accepted seat on Sep 20, and a seeded blockout Sep 12–14 (warn-only conflict on Sunday Gathering).
 
@@ -80,12 +83,12 @@ Directors can restore Harbor Church from **Settings → Reset demo data**.
 ## Typical Sunday flow
 
 1. Sign in as **director**.
-2. Create a plan (or open Sunday Gathering).
-3. Add songs from the library, a YouTube block, and announcements.
-4. Upload rehearsal audio on a song — it plays on the song page and anywhere that song is on a setlist.
-5. Assign people to positions.
-6. Sign out, enter as **member**, open the plan, accept/decline, and rehearse in-app.
-7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked. Lockout create/list/update/delete and conflict compute run in the server action layer with ownership checks; directors may read all lockouts for warnings only.
+2. Settings → Modules (or `/onboarding`) to pick org type and modules. Use **Harbor FC (Sports)** to hide Worship.
+3. Create a plan when Worship is on, or a recurring event from Calendar when Events is on.
+4. Add songs from the library when Worship is on. Upload rehearsal audio — it plays on the song page and anywhere that song is on a setlist.
+5. Assign people to positions on a plan or event.
+6. Sign out, enter as **member**, accept/decline, and rehearse in-app when Worship is on.
+7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked, including recurring occurrences.
 
 ## Project layout
 

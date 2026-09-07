@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { logoutAction, resetDemoAction, updateChurchAction } from "@/lib/actions";
+import { applyOrgPresetAction, logoutAction, resetDemoAction, updateChurchAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
+import { hasModule, moduleSummary, ORG_TYPE_LABELS, roleLabel } from "@/lib/modules";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -16,20 +17,22 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-xl space-y-6">
       <div>
         <p className="field-label">Account</p>
-        <h1 className="font-serif text-4xl tracking-tight">Settings</h1>
+        <h1 className="font-serif text-4xl tracking-tight text-wine-deep">Settings</h1>
       </div>
 
       <section className="paper-card rounded-3xl p-6">
         <p className="field-label">Signed in as</p>
         <p className="font-serif text-3xl">{session.name}</p>
         <p className="mt-1 text-ink-soft">{session.email}</p>
-        <p className="mt-3 chip w-fit">{session.role === "director" ? "Music director" : "Team member"}</p>
+        <p className="mt-3 chip w-fit">
+          {roleLabel(session.role)} · {store.churchName}
+        </p>
       </section>
 
       <section className="paper-card space-y-3 rounded-3xl p-6">
         <p className="field-label">Availability</p>
         <p className="text-ink-soft">
-          Add dates you’re unavailable. Directors see a gold warning if those overlap a Sunday you’re assigned to.
+          Add dates you’re unavailable. Directors see a gold warning if those overlap a day you’re assigned to.
         </p>
         <Link href="/availability" className="btn btn-ghost">
           Manage blockouts
@@ -37,20 +40,58 @@ export default async function SettingsPage() {
       </section>
 
       {session.role === "director" ? (
-        <form action={updateChurchAction} className="paper-card space-y-4 rounded-3xl p-6">
-          <p className="field-label">Church</p>
-          <input name="churchName" defaultValue={store.churchName} className="field" />
-          <button className="btn btn-ghost" type="submit">
-            Save church name
-          </button>
-        </form>
+        <>
+          <form action={updateChurchAction} className="paper-card space-y-4 rounded-3xl p-6">
+            <p className="field-label">Org</p>
+            <input name="churchName" defaultValue={store.churchName} className="field" />
+            <p className="text-sm text-ink-soft">
+              {ORG_TYPE_LABELS[store.orgType]} · {moduleSummary(store.modules)}
+            </p>
+            <button className="btn btn-ghost" type="submit">
+              Save org name
+            </button>
+          </form>
+
+          <section className="paper-card space-y-3 rounded-3xl p-6">
+            <p className="field-label">Modules</p>
+            <p className="text-ink-soft">
+              Toggle hides nav and routes. Songs, plans, and events stay saved. Worship is optional — Calendar and People
+              stay on.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/settings/modules" className="btn btn-primary">
+                Edit modules
+              </Link>
+              <Link href="/onboarding" className="btn btn-ghost">
+                Open onboarding
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <form action={applyOrgPresetAction}>
+                <input type="hidden" name="preset" value="sports" />
+                <button className="btn btn-ghost" type="submit">
+                  Use Harbor FC (Sports)
+                </button>
+              </form>
+              <form action={applyOrgPresetAction}>
+                <input type="hidden" name="preset" value="church" />
+                <button className="btn btn-ghost" type="submit">
+                  Use Harbor Church
+                </button>
+              </form>
+            </div>
+            {hasModule(store.modules, "worship") ? null : (
+              <p className="text-sm text-muted">Worship is off — Plans and Songs are hidden, not deleted.</p>
+            )}
+          </section>
+        </>
       ) : null}
 
       <section className="paper-card space-y-3 rounded-3xl p-6">
         <p className="field-label">Demo</p>
         <p className="text-ink-soft">
-          Harbor Church ships with twelve songs and two Sundays. Resetting restores the original seed and keeps you
-          signed in.
+          Harbor Church ships with twelve songs, two Sundays, and a Saturday league series. Resetting restores the original
+          seed and keeps you signed in.
         </p>
         {session.role === "director" ? (
           <form action={resetDemoAction}>

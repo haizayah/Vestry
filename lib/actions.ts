@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearSessionCookie, requireRole, requireSession, setSessionCookie, toPublicUser } from "./auth";
+import { DEFAULT_CHURCH_MODULES, DEFAULT_SPORTS_MODULES, isOrgType, normalizeModules } from "./modules";
+import { parseRecurrenceFromForm } from "./recurrence";
 import { newId, readStore, resetStore, updateStore } from "./store";
-import type { AssignmentStatus, PlanItem, PlanItemType } from "./types";
+import type { AssignmentStatus, Event, PlanItem, PlanItemType } from "./types";
 
 function refreshApp() {
   revalidatePath("/", "layout");
@@ -328,10 +330,157 @@ export async function addPersonAction(formData: FormData): Promise<void> {
 
 export async function updateChurchAction(formData: FormData): Promise<void> {
   await requireRole("director");
-  const name = String(formData.get("churchName") || "").trim();
+  const name = String(formData.get("churchName") || formData.get("orgName") || "").trim();
   if (!name) return;
   await updateStore((store) => {
     store.churchName = name;
+  });
+  refreshApp();
+}
+
+export async function updateOrgAction(formData: FormData): Promise<void> {
+  await requireRole("director");
+  const name = String(formData.get("churchName") || formData.get("orgName") || "").trim();
+  const orgTypeRaw = String(formData.get("orgType") || "");
+  const modules = formData.getAll("modules").map(String);
+  await updateStore((store) => {
+    if (name) store.churchName = name;
+    if (isOrgType(orgTypeRaw)) store.orgType = orgTypeRaw;
+    store.modules = normalizeModules(modules);
+    // Toggle hides nav/routes only — songs, plans, and events stay on disk.
+  });
+  refreshApp();
+}
+
+export async function completeOnboardingAction(formData: FormData): Promise<void> {
+  await updateOrgAction(formData);
+  redirect("/home");
+}
+
+export async function applyOrgPresetAction(formData: FormData): Promise<void> {
+  await requireRole("director");
+  const preset = String(formData.get("preset") || "");
+  await updateStore((store) => {
+    if (preset === "sports") {
+      store.churchName = "Harbor FC";
+      store.orgType = "sports";
+      store.modules = normalizeModules(DEFAULT_SPORTS_MODULES);
+      return;
+    }
+    store.churchName = "Harbor Church";
+    store.orgType = "church";
+    store.modules = normalizeModules(DEFAULT_CHURCH_MODULES);
+  });
+  refreshApp();
+}
+
+export async function createEventAction(formData: FormData): Promise<void> {
+  await requireRole("director");
+  const title = String(formData.get("title") || "").trim();
+  const date = String(formData.get("date") || "");
+  if (!title || !date) return;
+
+  const id = await updateStore((store) => {
+    const event: Event = {
+      id: newId("event"),
+      title,
+      date,
+      time: String(formData.get("time") || "10:00 AM").trim(),
+      location: String(formData.get("location") || "").trim(),
+      notes: String(formData.get("notes") || "").trim(),
+      recurrence: parseRecurrenceFromForm(formData),
+      assignments: [],
+      createdAt: new Date().toISOString(),
+    };
+    store.events.push(event);
+    store.events.sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
+    // Warn-only: lockout overlap on any occurrence never rejects this write.
+    return event.id;
+  });
+
+  refreshApp();
+  redirect(`/events/${id}`);
+}
+
+export async function updateEventAction(formData: FormData): Promise<void> {
+  await requireRole("director");
+  const id = String(formData.get("id") || "");
+  await updateStore((store) => {
+    const event = store.events.find((entry) => entry.id === id);
+    if (!event) throw new Error("Event not found");
+    event.title = String(formData.get("title") || "").trim() || event.title;
+    event.date = String(formData.get("date") || event.date);
+    event.time = String(formData.get("time") || event.time).trim();
+    event.location = String(formData.get("location") || "").trim();
+    event.notes = String(formData.get("notes") || "").trim();
+    if (formData.has("repeat")) {
+      event.recurrence = parseRecurrenceFromForm(formData);
+    }
+    // Warn-only: lockout overlap on the (possibly new) series never rejects this write.
+  });
+  refreshApp();
+}
+
+export async function deleteEventAction(formData: FormData) {
+  await requireRole("director");
+  const id = String(formData.get("id") || "");
+  await updateStore((store) => {
+    store.events = store.events.filter((entry) => entry.id !== id);
+  });
+  refreshApp();
+  redirect("/events");
+}
+
+export async function assignEventPersonAction(formData: FormData) {
+  await requireRole("director");
+  const eventId = String(formData.get("eventId") || "");
+  const personId = String(formData.get("personId") || "");
+  const position = String(formData.get("position") || "Member");
+  await updateStore((store) => {
+    const event = store.events.find((entry) => entry.id === eventId);
+    if (!event) throw new Error("Event not found");
+    if (!store.people.some((person) => person.id === personId)) throw new Error("Person not found");
+    if (event.assignments.some((row) => row.personId === personId && row.position === position)) return;
+    // Warn-only: a lockout covering an occurrence must not block assign.
+    event.assignments.push({
+      id: newId("as"),
+      personId,
+      position,
+      status: "pending",
+    });
+  });
+  refreshApp();
+}
+
+export async function unassignEventPersonAction(formData: FormData) {
+  await requireRole("director");
+  const eventId = String(formData.get("eventId") || "");
+  const assignmentId = String(formData.get("assignmentId") || "");
+  await updateStore((store) => {
+    const event = store.events.find((entry) => entry.id === eventId);
+    if (!event) throw new Error("Event not found");
+    event.assignments = event.assignments.filter((row) => row.id !== assignmentId);
+  });
+  refreshApp();
+}
+
+export async function respondEventAssignmentAction(formData: FormData) {
+  const session = await requireSession();
+  const eventId = String(formData.get("eventId") || "");
+  const assignmentId = String(formData.get("assignmentId") || "");
+  const status = String(formData.get("status") || "") as AssignmentStatus;
+  if (status !== "accepted" && status !== "declined") {
+    throw new Error("Invalid response");
+  }
+  await updateStore((store) => {
+    const person = store.people.find((entry) => entry.userId === session.id);
+    const event = store.events.find((entry) => entry.id === eventId);
+    const assignment = event?.assignments.find((row) => row.id === assignmentId);
+    if (!event || !assignment) throw new Error("Assignment not found");
+    if (session.role !== "director" && assignment.personId !== person?.id) {
+      throw new Error("Forbidden");
+    }
+    assignment.status = status;
   });
   refreshApp();
 }

@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { normalizeModules } from "./modules";
 import { createSeed } from "./seed";
 import type { StoreData } from "./types";
 
@@ -22,6 +23,13 @@ function normalizeStore(data: StoreData): StoreData {
   if (!Array.isArray(data.lockouts)) {
     data.lockouts = [];
   }
+  if (!Array.isArray(data.events)) {
+    data.events = [];
+  }
+  if (!data.orgType) {
+    data.orgType = "church";
+  }
+  data.modules = normalizeModules(data.modules);
   return data;
 }
 

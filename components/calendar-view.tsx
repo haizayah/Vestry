@@ -21,6 +21,7 @@ import {
 } from "@/lib/calendar";
 import { formatPlanDate } from "@/lib/format";
 import { ConflictChip } from "./conflict-chip";
+import { NewEventModal } from "./new-event-form";
 
 type View = "month" | "week";
 
@@ -38,16 +39,29 @@ export function CalendarView({
   events,
   today,
   canCreate,
+  canCreateEvent = false,
+  showPlanFilter = true,
+  showEventFilter = true,
+  openNewEvent = false,
 }: {
   plans: CalendarPlan[];
   events: CalendarEvent[];
   today: string;
   canCreate: boolean;
+  canCreateEvent?: boolean;
+  showPlanFilter?: boolean;
+  showEventFilter?: boolean;
+  openNewEvent?: boolean;
 }) {
   const [view, setView] = useState<View>("month");
   const [cursor, setCursor] = useState(today);
   const [selected, setSelected] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<Filters>({
+    ...DEFAULT_FILTERS,
+    plans: showPlanFilter,
+    events: showEventFilter,
+  });
+  const [eventModal, setEventModal] = useState(openNewEvent);
 
   const visiblePlans = useMemo(
     () =>
@@ -57,7 +71,11 @@ export function CalendarView({
       }),
     [filters.assignments, filters.plans, plans],
   );
-  const visibleEvents = useMemo(() => (filters.events ? events : []), [events, filters.events]);
+  const visibleEvents = useMemo(() => {
+    const rows = filters.events ? events : [];
+    if (filters.assignments) return rows.filter((event) => event.assigned);
+    return rows;
+  }, [events, filters.assignments, filters.events]);
 
   const range = useMemo(() => {
     if (view === "week") {
@@ -99,23 +117,31 @@ export function CalendarView({
     setFilters((current) => ({ ...current, [key]: !current[key] }));
   }
 
+  const emptyNoun = showPlanFilter ? "services" : "events";
   const emptyCopy =
     view === "week"
-      ? "No services this week — create a plan to see it here."
-      : "No services this month — create a plan to see it here.";
+      ? `No ${emptyNoun} this week — create ${showPlanFilter ? "a plan" : "an event"} to see it here.`
+      : `No ${emptyNoun} this month — create ${showPlanFilter ? "a plan" : "an event"} to see it here.`;
 
   return (
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="field-label">Harbor Sundays</p>
+          <p className="field-label">Month & week</p>
           <h1 className="font-serif text-4xl tracking-tight md:text-5xl">Calendar</h1>
         </div>
-        {canCreate ? (
-          <Link href="/plans/new" className="btn btn-primary">
-            New plan
-          </Link>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {canCreate && showPlanFilter ? (
+            <Link href="/plans/new" className="btn btn-ghost">
+              New plan
+            </Link>
+          ) : null}
+          {canCreateEvent ? (
+            <button type="button" className="btn btn-primary" onClick={() => setEventModal(true)}>
+              New event
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -163,20 +189,30 @@ export function CalendarView({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2" aria-label="Filters">
-        <FilterChip label="Plans" pressed={filters.plans} onToggle={() => toggleFilter("plans")} />
-        <FilterChip label="Events" pressed={filters.events} onToggle={() => toggleFilter("events")} />
+        {showPlanFilter ? (
+          <FilterChip label="Plans" pressed={filters.plans} onToggle={() => toggleFilter("plans")} />
+        ) : null}
+        {showEventFilter ? (
+          <FilterChip label="Events" pressed={filters.events} onToggle={() => toggleFilter("events")} />
+        ) : null}
         <FilterChip label="My assignments" pressed={filters.assignments} onToggle={() => toggleFilter("assignments")} />
         <FilterChip label="Conflicts" pressed={filters.conflicts} onToggle={() => toggleFilter("conflicts")} />
       </div>
 
       {emptyRange ? (
         <p className="mt-5 text-ink-soft">
-          {canCreate ? (
+          {canCreate || canCreateEvent ? (
             <>
-              {view === "week" ? "No services this week — " : "No services this month — "}
-              <Link href="/plans/new" className="text-wine underline-offset-4 hover:underline">
-                create a plan
-              </Link>{" "}
+              {view === "week" ? `No ${emptyNoun} this week — ` : `No ${emptyNoun} this month — `}
+              {canCreateEvent && !showPlanFilter ? (
+                <button type="button" className="text-wine underline-offset-4 hover:underline" onClick={() => setEventModal(true)}>
+                  create an event
+                </button>
+              ) : (
+                <Link href="/plans/new" className="text-wine underline-offset-4 hover:underline">
+                  create a plan
+                </Link>
+              )}{" "}
               to see it here.
             </>
           ) : (
@@ -242,6 +278,8 @@ export function CalendarView({
           />
         </>
       ) : null}
+
+      <NewEventModal open={eventModal} defaultDate={selected ?? today} onClose={() => setEventModal(false)} />
     </div>
   );
 }
@@ -294,12 +332,20 @@ function PlanChip({
   );
 }
 
-function EventChip({ event }: { event: CalendarEvent }) {
-  return (
-    <span className="block truncate rounded-full border border-gold/70 bg-gold/15 px-2 py-0.5 text-[0.65rem] leading-tight text-wine-deep">
-      {event.time ? `${event.time} · ${event.title}` : event.title}
-    </span>
-  );
+function EventChip({ event, highlightConflicts }: { event: CalendarEvent; highlightConflicts?: boolean }) {
+  const conflict = Boolean(highlightConflicts && event.conflicts && event.conflicts.length > 0);
+  const label = event.time ? `${event.time} · ${event.title}` : event.title;
+  const className = conflict
+    ? "block truncate rounded-full border border-gold bg-gold/20 px-2 py-0.5 text-[0.65rem] leading-tight text-wine-deep"
+    : "block truncate rounded-full border border-gold/70 bg-gold/15 px-2 py-0.5 text-[0.65rem] leading-tight text-wine-deep";
+  if (event.href) {
+    return (
+      <Link href={event.href} title={event.title} onClick={(click) => click.stopPropagation()} className={className}>
+        {conflict ? `Conflict · ${label}` : label}
+      </Link>
+    );
+  }
+  return <span className={className}>{conflict ? `Conflict · ${label}` : label}</span>;
 }
 
 function dayHighlight({
@@ -398,7 +444,7 @@ function MonthGrid({
                   <PlanChip key={plan.id} plan={plan} highlightConflicts={highlightConflicts} />
                 ))}
                 {dayEvents.map((event) => (
-                  <EventChip key={event.id} event={event} />
+                  <EventChip key={event.id} event={event} highlightConflicts={highlightConflicts} />
                 ))}
               </div>
             </div>
@@ -501,7 +547,7 @@ function WeekGrid({
                   <PlanChip key={plan.id} plan={plan} highlightConflicts={highlightConflicts} />
                 ))}
                 {items.events.map((event) => (
-                  <EventChip key={event.id} event={event} />
+                  <EventChip key={event.id} event={event} highlightConflicts={highlightConflicts} />
                 ))}
               </div>
             </div>
@@ -577,7 +623,7 @@ function HourRow({
                 <PlanChip key={plan.id} plan={plan} compact highlightConflicts={highlightConflicts} />
               ))}
               {items.events.map((event) => (
-                <EventChip key={event.id} event={event} />
+                <EventChip key={event.id} event={event} highlightConflicts={highlightConflicts} />
               ))}
             </div>
           </div>
@@ -644,8 +690,23 @@ function DayPanel({
         {events.map((event) => (
           <li key={event.id} className="rounded-2xl bg-gold/15 px-4 py-3">
             <p className="text-[0.68rem] uppercase tracking-[0.12em] text-gold">Event</p>
-            <p className="font-serif text-xl">{event.title}</p>
+            {event.href ? (
+              <Link href={event.href} className="font-serif text-xl text-wine underline-offset-4 hover:underline">
+                {event.title}
+              </Link>
+            ) : (
+              <p className="font-serif text-xl">{event.title}</p>
+            )}
             <p className="mt-1 text-sm text-muted">{event.time || "All day"}</p>
+            {highlightConflicts && event.conflicts && event.conflicts.length > 0 ? (
+              <div className="mt-2">
+                <ConflictChip
+                  tooltip={event.conflicts
+                    .map((row) => (row.note ? `${row.personName}: ${row.range} — ${row.note}` : `${row.personName}: ${row.range}`))
+                    .join(" · ")}
+                />
+              </div>
+            ) : null}
           </li>
         ))}
         {date && empty ? <li className="text-sm text-muted">Nothing on this day.</li> : null}

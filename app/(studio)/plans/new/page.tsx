@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createPlanAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
 import { todayISO } from "@/lib/format";
+import { requireModule } from "@/lib/guards";
+import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "New plan" };
 
@@ -10,6 +12,7 @@ export default async function NewPlanPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "director") redirect("/plans");
+  requireModule(await readStore(), "worship");
 
   return (
     <div className="mx-auto max-w-xl">

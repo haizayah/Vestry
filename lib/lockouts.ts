@@ -1,5 +1,5 @@
 import { formatShortDate } from "./format";
-import type { Lockout, Person, Plan } from "./types";
+import type { Assignment, Lockout, Person, Plan } from "./types";
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -42,11 +42,16 @@ export type PlanConflict = {
   note: string;
 };
 
-export function conflictsForPlan(plan: Plan, lockouts: Lockout[], people: Person[]): PlanConflict[] {
+export function conflictsForAssignments(
+  assignments: Assignment[],
+  iso: string,
+  lockouts: Lockout[],
+  people: Person[],
+): PlanConflict[] {
   const seen = new Set<string>();
   const conflicts: PlanConflict[] = [];
-  for (const assignment of plan.assignments) {
-    for (const lockout of lockoutsForPersonOnDate(lockouts, assignment.personId, plan.date)) {
+  for (const assignment of assignments) {
+    for (const lockout of lockoutsForPersonOnDate(lockouts, assignment.personId, iso)) {
       const key = `${assignment.personId}:${lockout.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -59,4 +64,8 @@ export function conflictsForPlan(plan: Plan, lockouts: Lockout[], people: Person
     }
   }
   return conflicts;
+}
+
+export function conflictsForPlan(plan: Plan, lockouts: Lockout[], people: Person[]): PlanConflict[] {
+  return conflictsForAssignments(plan.assignments, plan.date, lockouts, people);
 }

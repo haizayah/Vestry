@@ -7,6 +7,8 @@ export const DEMO_PASSWORD = "vestry";
 export function createSeed(): StoreData {
   return {
     churchName: "Harbor Church",
+    orgType: "church",
+    modules: ["calendar", "people", "scheduling", "events", "worship"],
     users: [
       {
         id: "user-elena",
@@ -339,6 +341,32 @@ export function createSeed(): StoreData {
           { id: "as-20-naomi", personId: "person-naomi", position: "Vocals", status: "accepted" },
           { id: "as-20-micah", personId: "person-micah", position: "Acoustic Guitar", status: "pending" },
           { id: "as-20-priya", personId: "person-priya", position: "Keys", status: "accepted" },
+        ],
+      },
+    ],
+    events: [
+      {
+        id: "event-league-sat",
+        title: "Saturday League Match",
+        date: "2026-09-13",
+        time: "10:00 AM",
+        location: "Away vs Northside",
+        notes: "Kickoff on the north pitch. Bring pinnies.",
+        createdAt: now,
+        recurrence: {
+          freq: "weekly",
+          interval: 1,
+          weekdays: [6],
+          ends: { mode: "count", count: 12 },
+        },
+        assignments: [
+          { id: "as-evt-elena", personId: "person-elena", position: "Coach", status: "accepted" },
+          { id: "as-evt-jordan", personId: "person-jordan", position: "Captain", status: "pending" },
+          { id: "as-evt-micah", personId: "person-micah", position: "Midfielder", status: "accepted" },
+          { id: "as-evt-priya", personId: "person-priya", position: "Forward", status: "accepted" },
+          { id: "as-evt-sam", personId: "person-sam", position: "Defender", status: "accepted" },
+          { id: "as-evt-naomi", personId: "person-naomi", position: "Forward", status: "accepted" },
+          { id: "as-evt-caleb", personId: "person-caleb", position: "Goalkeeper", status: "accepted" },
         ],
       },
     ],

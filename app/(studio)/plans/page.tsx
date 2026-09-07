@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { formatPlanDate, isUpcoming } from "@/lib/format";
 import { mediaReadyCount } from "@/lib/media";
+import { requireModule } from "@/lib/guards";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Plans" };
@@ -12,6 +13,7 @@ export default async function PlansPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
+  requireModule(store, "worship");
   const plans = [...store.plans].sort((a, b) => a.date.localeCompare(b.date));
 
   return (

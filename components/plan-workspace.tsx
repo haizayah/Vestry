@@ -235,7 +235,7 @@ export function PlanWorkspace({
 
       <aside className="space-y-5">
         <div className="paper-card rounded-3xl p-5">
-          <p className="field-label">Team</p>
+          <p className="field-label">People</p>
           <h2 className="mb-4 font-serif text-2xl">This Sunday</h2>
           <ul className="space-y-3">
             {plan.assignments.map((assignment) => {
