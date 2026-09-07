@@ -26,6 +26,12 @@ function normalizeStore(data: StoreData): StoreData {
   if (!Array.isArray(data.events)) {
     data.events = [];
   }
+  if (!Array.isArray(data.messages)) {
+    data.messages = [];
+  }
+  if (!Array.isArray(data.activity)) {
+    data.activity = [];
+  }
   if (!data.orgType) {
     data.orgType = "church";
   }

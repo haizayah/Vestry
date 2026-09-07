@@ -7,6 +7,8 @@ export type ScheduleRow = {
   key: string;
   kind: "event" | "plan";
   href: string;
+  planId?: string;
+  eventId?: string;
   title: string;
   date: string;
   time: string;
@@ -44,6 +46,7 @@ export function scheduleRows({
           key: `${plan.id}:${assignment.id}`,
           kind: "plan",
           href: `/plans/${plan.id}`,
+          planId: plan.id,
           title: plan.name,
           date: plan.date,
           time: plan.serviceTime,
@@ -58,6 +61,16 @@ export function scheduleRows({
   return rows.sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
 }
 
+export function pendingRequestRows(
+  args: Parameters<typeof scheduleRows>[0] & { personId?: string; onlyMine?: boolean },
+): ScheduleRow[] {
+  const rows = scheduleRows(args).filter((row) => row.assignment.status === "pending");
+  if (args.onlyMine) {
+    return rows.filter((row) => row.assignment.personId === args.personId);
+  }
+  return rows;
+}
+
 function pushAssignments(
   rows: ScheduleRow[],
   event: Event,
@@ -70,6 +83,7 @@ function pushAssignments(
       key: `${event.id}:${occurrence.date}:${assignment.id}`,
       kind: "event",
       href: `/events/${event.id}`,
+      eventId: event.id,
       title: event.title,
       date: occurrence.date,
       time: event.time,

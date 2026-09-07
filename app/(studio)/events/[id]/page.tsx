@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import {
-  assignEventPersonAction,
-  deleteEventAction,
-  respondEventAssignmentAction,
-  unassignEventPersonAction,
-} from "@/lib/actions";
+import { assignEventPersonAction, deleteEventAction, unassignEventPersonAction } from "@/lib/actions";
+import { AssignmentResponse, AssignmentStatusChip } from "@/components/assignment-response";
 import { ConflictChip } from "@/components/conflict-chip";
+import { chatHref } from "@/lib/chat";
 import { getSession } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
 import { computeEventAssignmentConflicts } from "@/lib/lockout-api";
@@ -55,6 +52,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
       {event.notes ? <p className="paper-card mt-6 rounded-3xl p-5 text-ink-soft">{event.notes}</p> : null}
 
+      {hasModule(store.modules, "chat") ? (
+        <Link href={chatHref({ kind: "event", eventId: event.id })} className="paper-card mt-4 block rounded-3xl p-5 transition hover:-translate-y-0.5">
+          <p className="field-label">Chat</p>
+          <h2 className="font-serif text-2xl text-wine-deep">Event thread</h2>
+          <p className="mt-2 text-sm text-ink-soft">Directors and members can post about this event.</p>
+        </Link>
+      ) : null}
+
       <section className="mt-10">
         <p className="field-label">Occurrences</p>
         <h2 className="font-serif text-2xl text-wine-deep">Series dates</h2>
@@ -86,27 +91,16 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {tooltip ? <ConflictChip tooltip={tooltip} /> : null}
-                    <span className="chip">{assignment.status}</span>
+                    <AssignmentStatusChip status={assignment.status} />
                   </div>
                 </div>
                 {mine || director ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <form action={respondEventAssignmentAction}>
-                      <input type="hidden" name="eventId" value={event.id} />
-                      <input type="hidden" name="assignmentId" value={assignment.id} />
-                      <input type="hidden" name="status" value="accepted" />
-                      <button className="btn btn-ghost px-3 py-1.5 text-sm" type="submit">
-                        Accept
-                      </button>
-                    </form>
-                    <form action={respondEventAssignmentAction}>
-                      <input type="hidden" name="eventId" value={event.id} />
-                      <input type="hidden" name="assignmentId" value={assignment.id} />
-                      <input type="hidden" name="status" value="declined" />
-                      <button className="btn btn-ghost px-3 py-1.5 text-sm" type="submit">
-                        Decline
-                      </button>
-                    </form>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <AssignmentResponse
+                      assignmentId={assignment.id}
+                      status={assignment.status}
+                      eventId={event.id}
+                    />
                     {director ? (
                       <form action={unassignEventPersonAction}>
                         <input type="hidden" name="eventId" value={event.id} />

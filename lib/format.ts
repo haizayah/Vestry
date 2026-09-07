@@ -45,3 +45,14 @@ export function timeGreeting(now = new Date()): "Good morning" | "Good afternoon
   if (hour < 17) return "Good afternoon";
   return "Good evening";
 }
+
+export function formatStamp(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}

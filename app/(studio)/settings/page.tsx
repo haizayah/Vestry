@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ActivityList } from "@/components/activity-list";
 import { applyOrgPresetAction, logoutAction, resetDemoAction, updateChurchAction } from "@/lib/actions";
+import { visibleActivity } from "@/lib/activity";
 import { getSession } from "@/lib/auth";
 import { hasModule, moduleSummary, ORG_TYPE_LABELS, roleLabel } from "@/lib/modules";
 import { readStore } from "@/lib/store";
@@ -27,6 +29,19 @@ export default async function SettingsPage() {
         <p className="mt-3 chip w-fit">
           {roleLabel(session.role)} · {store.churchName}
         </p>
+      </section>
+
+      <section className="paper-card space-y-4 rounded-3xl p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="field-label">Activity</p>
+            <p className="text-ink-soft">Assignments, replies, new events, and chat posts when Chat is on.</p>
+          </div>
+          <Link href="/activity" className="text-sm text-wine underline-offset-4 hover:underline">
+            Open feed
+          </Link>
+        </div>
+        <ActivityList items={visibleActivity(store.activity, store.modules).slice(0, 3)} empty="Nothing logged yet." />
       </section>
 
       <section className="paper-card space-y-3 rounded-3xl p-6">
@@ -55,8 +70,8 @@ export default async function SettingsPage() {
           <section className="paper-card space-y-3 rounded-3xl p-6">
             <p className="field-label">Modules</p>
             <p className="text-ink-soft">
-              Toggle hides nav and routes. Songs, plans, and events stay saved. Worship is optional — Calendar and People
-              stay on.
+              Toggle hides nav and routes. Songs, plans, events, and chat stay saved. Worship and Chat are optional —
+              Calendar and People stay on. Chat is off until you enable it.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/settings/modules" className="btn btn-primary">
@@ -82,6 +97,9 @@ export default async function SettingsPage() {
             </div>
             {hasModule(store.modules, "worship") ? null : (
               <p className="text-sm text-muted">Worship is off — Plans and Songs are hidden, not deleted.</p>
+            )}
+            {hasModule(store.modules, "chat") ? null : (
+              <p className="text-sm text-muted">Chat is off — the channel stays hidden until you enable it.</p>
             )}
           </section>
         </>

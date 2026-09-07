@@ -108,6 +108,30 @@ export type Lockout = {
   createdAt: string;
 };
 
+export type ChatThreadKind = "team" | "plan" | "event";
+
+export type ChatMessage = {
+  id: string;
+  threadKind: ChatThreadKind;
+  planId?: string;
+  eventId?: string;
+  authorUserId: string;
+  body: string;
+  createdAt: string;
+};
+
+export type ActivityKind = "assigned" | "accepted" | "declined" | "event" | "series" | "plan" | "chat";
+
+export type ActivityItem = {
+  id: string;
+  kind: ActivityKind;
+  createdAt: string;
+  actorUserId: string;
+  actorName: string;
+  summary: string;
+  href?: string;
+};
+
 export type StoreData = {
   churchName: string;
   orgType: OrgType;
@@ -118,6 +142,8 @@ export type StoreData = {
   plans: Plan[];
   events: Event[];
   lockouts: Lockout[];
+  messages: ChatMessage[];
+  activity: ActivityItem[];
 };
 
 export const POSITIONS = [

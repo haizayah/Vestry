@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AssignmentStatusChip } from "@/components/assignment-response";
 import { ConflictChip } from "@/components/conflict-chip";
+import { PendingRequests } from "@/components/pending-requests";
 import { getSession } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
 import { listLockoutsForConflictRead } from "@/lib/lockout-api";
 import { hasModule } from "@/lib/modules";
-import { scheduleRows } from "@/lib/schedule";
+import { pendingRequestRows, scheduleRows } from "@/lib/schedule";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Schedule" };
@@ -18,20 +20,38 @@ export default async function SchedulePage() {
   if (!hasModule(store.modules, "scheduling")) redirect("/home");
 
   const lockouts = await listLockoutsForConflictRead();
-  const rows = scheduleRows({
+  const person = store.people.find((entry) => entry.userId === session.id);
+  const listArgs = {
     events: hasModule(store.modules, "events") ? store.events : [],
     plans: store.plans,
     people: store.people,
     lockouts,
     includePlans: hasModule(store.modules, "worship"),
+  };
+  const rows = scheduleRows(listArgs);
+  const pending = pendingRequestRows({
+    ...listArgs,
+    personId: person?.id,
+    onlyMine: session.role !== "director",
   });
 
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="font-serif text-4xl tracking-tight text-wine-deep md:text-5xl">Schedule</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
-        Assignments across upcoming events. Conflicts stay warn-only (gold chip) — saves never block.
+        Director assigns; members Accept or Decline. Conflicts stay warn-only (gold chip) — saves never block.
       </p>
+
+      {pending.length > 0 ? (
+        <div className="mt-8">
+          <PendingRequests
+            rows={pending}
+            viewerPersonId={person?.id}
+            isDirector={session.role === "director"}
+            title="Pending requests"
+          />
+        </div>
+      ) : null}
 
       {rows.length === 0 ? (
         <div className="mx-auto mt-16 max-w-lg rounded-[1.75rem] border border-dashed border-line px-6 py-12 text-center">
@@ -56,7 +76,12 @@ export default async function SchedulePage() {
           </div>
         </div>
       ) : (
-        <ul className="mt-8 space-y-3">
+        <ul className={`${pending.length > 0 ? "mt-10" : "mt-8"} space-y-3`}>
+          {pending.length > 0 ? (
+            <li className="px-1">
+              <p className="field-label">Everyone scheduled</p>
+            </li>
+          ) : null}
           {rows.map((row) => (
             <li key={row.key} className="paper-card flex flex-wrap items-center justify-between gap-3 rounded-3xl px-5 py-4">
               <div>
@@ -73,12 +98,14 @@ export default async function SchedulePage() {
                   <ConflictChip
                     tooltip={row.conflicts
                       .map((conflict) =>
-                        conflict.note ? `${conflict.personName}: ${conflict.range} — ${conflict.note}` : `${conflict.personName}: ${conflict.range}`,
+                        conflict.note
+                          ? `${conflict.personName}: ${conflict.range} — ${conflict.note}`
+                          : `${conflict.personName}: ${conflict.range}`,
                       )
                       .join(" · ")}
                   />
                 ) : null}
-                <span className="chip">{row.assignment.status}</span>
+                <AssignmentStatusChip status={row.assignment.status} />
               </div>
             </li>
           ))}

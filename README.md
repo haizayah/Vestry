@@ -21,10 +21,13 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 - Adaptive Home: plan/media cards when Worship is on; event/assignment cards when off
 - Song library CRUD and service plans when Worship is on
 - YouTube and uploaded audio play **in-app** on song and plan pages
+- Optional Chat (off by default): team channel plus a thread per plan or event
+- Schedule requests: director assigns, members Accept / Decline; pending on Schedule and Home → Needs attention
+- Activity feed on Home and Settings for assignments, replies, new events/series, and chat posts
 
 **Out of scope**
 
-Chat, Resources, Giving, Check-ins, leads depth, auto-scheduler, CCLI, native apps, Spotify/Apple Music APIs.
+Resources, Giving, Check-ins, branding, iCal, leads depth, auto-scheduler, CCLI, native apps, Spotify/Apple Music APIs.
 
 ## Stack
 
@@ -86,9 +89,10 @@ Directors can restore Harbor Church from **Settings → Reset demo data**.
 2. Settings → Modules (or `/onboarding`) to pick org type and modules. Use **Harbor FC (Sports)** to hide Worship.
 3. Create a plan when Worship is on, or a recurring event from Calendar when Events is on.
 4. Add songs from the library when Worship is on. Upload rehearsal audio — it plays on the song page and anywhere that song is on a setlist.
-5. Assign people to positions on a plan or event.
+5. Assign people to positions on a plan or event. Members Accept or Decline from Schedule or Home → Needs attention.
 6. Sign out, enter as **member**, accept/decline, and rehearse in-app when Worship is on.
 7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked, including recurring occurrences.
+8. Turn on Chat in Settings → Modules for a team channel and per-plan or per-event threads. Activity on Home logs the lightweight trail.
 
 ## Project layout
 

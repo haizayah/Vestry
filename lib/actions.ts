@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearSessionCookie, requireRole, requireSession, setSessionCookie, toPublicUser } from "./auth";
-import { DEFAULT_CHURCH_MODULES, DEFAULT_SPORTS_MODULES, isOrgType, normalizeModules } from "./modules";
+import { recordActivity } from "./activity";
+import { chatHref, threadTitle } from "./chat";
+import { hasModule, DEFAULT_CHURCH_MODULES, DEFAULT_SPORTS_MODULES, isOrgType, normalizeModules } from "./modules";
 import { parseRecurrenceFromForm } from "./recurrence";
 import { newId, readStore, resetStore, updateStore } from "./store";
-import type { AssignmentStatus, Event, PlanItem, PlanItemType } from "./types";
+import type { AssignmentStatus, ChatThreadKind, Event, PlanItem, PlanItemType } from "./types";
 
 function refreshApp() {
   revalidatePath("/", "layout");
@@ -118,7 +120,7 @@ export async function deleteSongAction(formData: FormData) {
 }
 
 export async function createPlanAction(formData: FormData): Promise<void> {
-  await requireRole("director");
+  const director = await requireRole("director");
   const name = String(formData.get("name") || "").trim() || "Sunday Gathering";
   const date = String(formData.get("date") || "");
   if (!date) return;
@@ -136,6 +138,13 @@ export async function createPlanAction(formData: FormData): Promise<void> {
     };
     store.plans.push(plan);
     store.plans.sort((a, b) => a.date.localeCompare(b.date));
+    recordActivity(store, {
+      kind: "plan",
+      actorUserId: director.id,
+      actorName: director.name,
+      summary: `${director.name} created ${plan.name}`,
+      href: `/plans/${plan.id}`,
+    });
     return plan.id;
   });
 
@@ -260,14 +269,15 @@ export async function reorderPlanItemsAction(planId: string, orderedIds: string[
 }
 
 export async function assignPersonAction(formData: FormData) {
-  await requireRole("director");
+  const director = await requireRole("director");
   const planId = String(formData.get("planId") || "");
   const personId = String(formData.get("personId") || "");
   const position = String(formData.get("position") || "Vocals");
   await updateStore((store) => {
     const plan = store.plans.find((p) => p.id === planId);
+    const person = store.people.find((p) => p.id === personId);
     if (!plan) throw new Error("Plan not found");
-    if (!store.people.some((p) => p.id === personId)) throw new Error("Person not found");
+    if (!person) throw new Error("Person not found");
     if (plan.assignments.some((a) => a.personId === personId && a.position === position)) return;
     // Warn-only: a lockout covering plan.date must not block assign.
     plan.assignments.push({
@@ -275,6 +285,13 @@ export async function assignPersonAction(formData: FormData) {
       personId,
       position,
       status: "pending",
+    });
+    recordActivity(store, {
+      kind: "assigned",
+      actorUserId: director.id,
+      actorName: director.name,
+      summary: `${director.name} assigned ${person.name} as ${position} on ${plan.name}`,
+      href: `/plans/${plan.id}`,
     });
   });
   refreshApp();
@@ -309,6 +326,14 @@ export async function respondAssignmentAction(formData: FormData) {
       throw new Error("Forbidden");
     }
     assignment.status = status;
+    const assigned = store.people.find((entry) => entry.id === assignment.personId);
+    recordActivity(store, {
+      kind: status === "accepted" ? "accepted" : "declined",
+      actorUserId: session.id,
+      actorName: session.name,
+      summary: `${assigned?.name ?? session.name} ${status} ${assignment.position} on ${plan.name}`,
+      href: `/plans/${plan.id}`,
+    });
   });
   refreshApp();
 }
@@ -375,7 +400,7 @@ export async function applyOrgPresetAction(formData: FormData): Promise<void> {
 }
 
 export async function createEventAction(formData: FormData): Promise<void> {
-  await requireRole("director");
+  const director = await requireRole("director");
   const title = String(formData.get("title") || "").trim();
   const date = String(formData.get("date") || "");
   if (!title || !date) return;
@@ -394,6 +419,15 @@ export async function createEventAction(formData: FormData): Promise<void> {
     };
     store.events.push(event);
     store.events.sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
+    recordActivity(store, {
+      kind: event.recurrence ? "series" : "event",
+      actorUserId: director.id,
+      actorName: director.name,
+      summary: event.recurrence
+        ? `${director.name} created ${event.title} (${event.recurrence.freq} series)`
+        : `${director.name} created ${event.title}`,
+      href: `/events/${event.id}`,
+    });
     // Warn-only: lockout overlap on any occurrence never rejects this write.
     return event.id;
   });
@@ -432,14 +466,15 @@ export async function deleteEventAction(formData: FormData) {
 }
 
 export async function assignEventPersonAction(formData: FormData) {
-  await requireRole("director");
+  const director = await requireRole("director");
   const eventId = String(formData.get("eventId") || "");
   const personId = String(formData.get("personId") || "");
   const position = String(formData.get("position") || "Member");
   await updateStore((store) => {
     const event = store.events.find((entry) => entry.id === eventId);
+    const person = store.people.find((entry) => entry.id === personId);
     if (!event) throw new Error("Event not found");
-    if (!store.people.some((person) => person.id === personId)) throw new Error("Person not found");
+    if (!person) throw new Error("Person not found");
     if (event.assignments.some((row) => row.personId === personId && row.position === position)) return;
     // Warn-only: a lockout covering an occurrence must not block assign.
     event.assignments.push({
@@ -447,6 +482,13 @@ export async function assignEventPersonAction(formData: FormData) {
       personId,
       position,
       status: "pending",
+    });
+    recordActivity(store, {
+      kind: "assigned",
+      actorUserId: director.id,
+      actorName: director.name,
+      summary: `${director.name} assigned ${person.name} as ${position} on ${event.title}`,
+      href: `/events/${event.id}`,
     });
   });
   refreshApp();
@@ -481,6 +523,54 @@ export async function respondEventAssignmentAction(formData: FormData) {
       throw new Error("Forbidden");
     }
     assignment.status = status;
+    const assigned = store.people.find((entry) => entry.id === assignment.personId);
+    recordActivity(store, {
+      kind: status === "accepted" ? "accepted" : "declined",
+      actorUserId: session.id,
+      actorName: session.name,
+      summary: `${assigned?.name ?? session.name} ${status} ${assignment.position} on ${event.title}`,
+      href: `/events/${event.id}`,
+    });
+  });
+  refreshApp();
+}
+
+export async function postChatAction(formData: FormData) {
+  const session = await requireSession();
+  const body = String(formData.get("body") || "").trim();
+  if (!body) return;
+  const threadKind = String(formData.get("threadKind") || "team") as ChatThreadKind;
+  if (threadKind !== "team" && threadKind !== "plan" && threadKind !== "event") {
+    throw new Error("Invalid thread");
+  }
+  const planId = String(formData.get("planId") || "") || undefined;
+  const eventId = String(formData.get("eventId") || "") || undefined;
+
+  await updateStore((store) => {
+    if (!hasModule(store.modules, "chat")) throw new Error("Chat is off");
+    if (threadKind === "plan") {
+      if (!planId || !store.plans.some((plan) => plan.id === planId)) throw new Error("Plan not found");
+    }
+    if (threadKind === "event") {
+      if (!eventId || !store.events.some((event) => event.id === eventId)) throw new Error("Event not found");
+    }
+    store.messages.push({
+      id: newId("msg"),
+      threadKind,
+      planId: threadKind === "plan" ? planId : undefined,
+      eventId: threadKind === "event" ? eventId : undefined,
+      authorUserId: session.id,
+      body: body.slice(0, 2000),
+      createdAt: new Date().toISOString(),
+    });
+    const title = threadTitle(store, { kind: threadKind, planId, eventId });
+    recordActivity(store, {
+      kind: "chat",
+      actorUserId: session.id,
+      actorName: session.name,
+      summary: `${session.name} posted in ${title}`,
+      href: chatHref({ kind: threadKind, planId, eventId }),
+    });
   });
   refreshApp();
 }

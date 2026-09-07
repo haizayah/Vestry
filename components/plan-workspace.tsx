@@ -7,11 +7,12 @@ import {
   assignPersonAction,
   movePlanItemAction,
   removePlanItemAction,
-  respondAssignmentAction,
   unassignPersonAction,
   updatePlanItemAction,
   updatePlanMetaAction,
 } from "@/lib/actions";
+import { AssignmentResponse, AssignmentStatusChip } from "@/components/assignment-response";
+import { chatHref } from "@/lib/chat";
 import { audioSrc, hasYouTube, resolveItem } from "@/lib/media";
 import { ITEM_LABELS, POSITIONS, type Person, type Plan, type PlanItemType, type PublicUser, type Song } from "@/lib/types";
 import { AudioUploader } from "./audio-uploader";
@@ -24,12 +25,14 @@ export function PlanWorkspace({
   people,
   user,
   assignmentConflicts,
+  chatOn = false,
 }: {
   plan: Plan;
   songs: Song[];
   people: Person[];
   user: PublicUser;
   assignmentConflicts: Record<string, string>;
+  chatOn?: boolean;
 }) {
   const director = user.role === "director";
   const me = people.find((p) => p.userId === user.id);
@@ -251,41 +254,12 @@ export function PlanWorkspace({
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-1">
                       {conflictTooltip ? <ConflictChip tooltip={conflictTooltip} /> : null}
-                      <span
-                        className={`chip ${
-                          assignment.status === "accepted"
-                            ? "border-good/30 text-good"
-                            : assignment.status === "declined"
-                              ? "border-rose/30 text-rose"
-                              : ""
-                        }`}
-                      >
-                        {assignment.status}
-                      </span>
+                      <AssignmentStatusChip status={assignment.status} />
                     </div>
                   </div>
                   {mine || director ? (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {assignment.status !== "accepted" ? (
-                        <form action={respondAssignmentAction}>
-                          <input type="hidden" name="planId" value={plan.id} />
-                          <input type="hidden" name="assignmentId" value={assignment.id} />
-                          <input type="hidden" name="status" value="accepted" />
-                          <button className="btn btn-primary px-3 py-1.5 text-sm" type="submit">
-                            Accept
-                          </button>
-                        </form>
-                      ) : null}
-                      {assignment.status !== "declined" ? (
-                        <form action={respondAssignmentAction}>
-                          <input type="hidden" name="planId" value={plan.id} />
-                          <input type="hidden" name="assignmentId" value={assignment.id} />
-                          <input type="hidden" name="status" value="declined" />
-                          <button className="btn btn-ghost px-3 py-1.5 text-sm" type="submit">
-                            Decline
-                          </button>
-                        </form>
-                      ) : null}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <AssignmentResponse assignmentId={assignment.id} status={assignment.status} planId={plan.id} />
                       {director ? (
                         <form action={unassignPersonAction}>
                           <input type="hidden" name="planId" value={plan.id} />
@@ -303,6 +277,17 @@ export function PlanWorkspace({
             {plan.assignments.length === 0 ? <p className="text-sm text-muted">No one scheduled yet.</p> : null}
           </ul>
         </div>
+
+        {chatOn ? (
+          <Link
+            href={chatHref({ kind: "plan", planId: plan.id })}
+            className="paper-card block rounded-3xl p-5 transition hover:-translate-y-0.5"
+          >
+            <p className="field-label">Chat</p>
+            <h2 className="font-serif text-2xl text-wine-deep">Plan thread</h2>
+            <p className="mt-2 text-sm text-ink-soft">Directors and members can post on this Sunday.</p>
+          </Link>
+        ) : null}
 
         {director ? (
           <form action={assignPersonAction} className="paper-card space-y-3 rounded-3xl p-5">

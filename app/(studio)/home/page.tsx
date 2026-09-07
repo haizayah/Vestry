@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ActivityList } from "@/components/activity-list";
 import { ConflictChip } from "@/components/conflict-chip";
+import { PendingRequests } from "@/components/pending-requests";
+import { visibleActivity } from "@/lib/activity";
 import { getSession } from "@/lib/auth";
 import { firstName, formatShortDate, isUpcoming, timeGreeting, todayISO } from "@/lib/format";
 import { listLockoutsForConflictRead } from "@/lib/lockout-api";
@@ -9,6 +12,7 @@ import { conflictsForAssignments } from "@/lib/lockouts";
 import { mediaReadyCount } from "@/lib/media";
 import { hasModule, moduleSummary, ORG_TYPE_LABELS } from "@/lib/modules";
 import { nextOccurrence } from "@/lib/recurrence";
+import { pendingRequestRows } from "@/lib/schedule";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Home" };
@@ -20,6 +24,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const store = await readStore();
   const worshipOn = hasModule(store.modules, "worship");
   const eventsOn = hasModule(store.modules, "events");
+  const schedulingOn = hasModule(store.modules, "scheduling");
   const lockouts = await listLockoutsForConflictRead();
   const person = store.people.find((entry) => entry.userId === session.id);
   const upcomingPlans = [...store.plans].filter((plan) => isUpcoming(plan.date)).sort((a, b) => a.date.localeCompare(b.date));
@@ -33,11 +38,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       .filter((assignment) => assignment.personId === person?.id)
       .map((assignment) => ({ plan, assignment })),
   );
-  const pending = myPlanAssignments.filter((row) => row.assignment.status === "pending");
+  const pending = pendingRequestRows({
+    events: eventsOn ? store.events : [],
+    plans: store.plans,
+    people: store.people,
+    lockouts,
+    includePlans: worshipOn,
+    personId: person?.id,
+    onlyMine: session.role !== "director",
+  });
   const nextEvent = upcomingEvents[0];
   const nextEventConflicts = nextEvent
     ? conflictsForAssignments(nextEvent.assignments, nextEvent.date, lockouts, store.people)
     : [];
+  const feed = visibleActivity(store.activity, store.modules).slice(0, 8);
+  const awaitingCount =
+    session.role === "director"
+      ? pending.length
+      : pending.filter((row) => row.assignment.personId === person?.id).length;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -54,7 +72,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             Upcoming
           </Link>
           <Link href="/home?tab=attention" className={`chip ${tab === "attention" ? "chip-active" : ""}`}>
-            Needs attention
+            Needs attention{awaitingCount ? ` · ${awaitingCount}` : ""}
           </Link>
         </div>
         {session.role === "director" ? (
@@ -64,7 +82,38 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         ) : null}
       </div>
 
-      {worshipOn ? (
+      {tab === "attention" ? (
+        <div className="mt-8 space-y-8">
+          {schedulingOn || pending.length > 0 ? (
+            <PendingRequests
+              rows={pending}
+              viewerPersonId={person?.id}
+              isDirector={session.role === "director"}
+              title="Schedule requests"
+              empty="No pending assignments right now."
+            />
+          ) : null}
+
+          <article className="paper-card rounded-3xl p-6">
+            <p className="text-[0.68rem] uppercase tracking-[0.16em] text-gold">Needs attention</p>
+            <h2 className="mt-2 font-serif text-3xl text-wine-deep">Warn-only conflicts</h2>
+            <p className="mt-3 text-ink-soft">
+              {nextEventConflicts.length
+                ? nextEventConflicts.map((row) => `${row.personName} · ${row.range}`).join(" · ")
+                : "Nothing blocked. Saves never stop for a lockout overlap."}
+            </p>
+            {nextEventConflicts.length > 0 ? (
+              <div className="mt-4">
+                <ConflictChip
+                  tooltip={nextEventConflicts
+                    .map((row) => (row.note ? `${row.personName}: ${row.range} — ${row.note}` : `${row.personName}: ${row.range}`))
+                    .join(" · ")}
+                />
+              </div>
+            ) : null}
+          </article>
+        </div>
+      ) : worshipOn ? (
         <>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <article className="paper-card rounded-3xl p-6">
@@ -77,11 +126,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </article>
             <article className="paper-card rounded-3xl p-6">
               <p className="field-label">{session.role === "director" ? "Awaiting replies" : "Your pending"}</p>
-              <p className="font-serif text-4xl tracking-tight">
-                {session.role === "director"
-                  ? store.plans.reduce((n, plan) => n + plan.assignments.filter((row) => row.status === "pending").length, 0)
-                  : pending.length}
-              </p>
+              <p className="font-serif text-4xl tracking-tight">{awaitingCount}</p>
             </article>
           </div>
 
@@ -118,26 +163,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </>
       ) : (
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {tab === "attention" ? (
-            <article className="paper-card rounded-3xl p-6 md:col-span-2">
-              <p className="text-[0.68rem] uppercase tracking-[0.16em] text-gold">Needs attention</p>
-              <h2 className="mt-2 font-serif text-3xl text-wine-deep">Warn-only conflicts</h2>
-              <p className="mt-3 text-ink-soft">
-                {nextEventConflicts.length
-                  ? nextEventConflicts.map((row) => `${row.personName} · ${row.range}`).join(" · ")
-                  : "Nothing blocked. Saves never stop for a lockout overlap."}
-              </p>
-              {nextEventConflicts.length > 0 ? (
-                <div className="mt-4">
-                  <ConflictChip
-                    tooltip={nextEventConflicts
-                      .map((row) => (row.note ? `${row.personName}: ${row.range} — ${row.note}` : `${row.personName}: ${row.range}`))
-                      .join(" · ")}
-                  />
-                </div>
-              ) : null}
-            </article>
-          ) : nextEvent ? (
+          {nextEvent ? (
             <Link href={`/events/${nextEvent.eventId}`} className="paper-card block rounded-3xl p-6 transition hover:-translate-y-0.5">
               <p className="text-[0.68rem] uppercase tracking-[0.16em] text-gold">Next up</p>
               <h2 className="mt-2 font-serif text-3xl tracking-tight text-wine-deep">{nextEvent.title}</h2>
@@ -168,7 +194,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </div>
       )}
 
-      {session.role === "member" ? (
+      {tab === "upcoming" ? (
+        <section className="mt-12">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="field-label">Org</p>
+              <h2 className="font-serif text-3xl tracking-tight text-wine-deep">Activity</h2>
+            </div>
+            <Link href="/activity" className="text-sm text-wine underline-offset-4 hover:underline">
+              See all
+            </Link>
+          </div>
+          <div className="mt-4">
+            <ActivityList items={feed} empty="Nothing new yet. Assignments, replies, and new events will land here." />
+          </div>
+        </section>
+      ) : null}
+
+      {session.role === "member" && tab === "upcoming" ? (
         <section className="mt-12">
           <p className="field-label">Your schedule</p>
           <h2 className="font-serif text-3xl tracking-tight">Invites</h2>
@@ -189,7 +232,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {myPlanAssignments.length === 0 ? <p className="text-muted">You haven’t been scheduled yet.</p> : null}
           </ul>
         </section>
-      ) : worshipOn ? (
+      ) : session.role === "director" && worshipOn && tab === "upcoming" ? (
         <section className="mt-12 grid gap-4 md:grid-cols-2">
           <Link href="/songs/new" className="paper-card rounded-3xl p-6 transition hover:-translate-y-0.5">
             <p className="field-label">Library</p>

@@ -27,7 +27,7 @@ export const MODULE_CARDS: ModuleMeta[] = [
   { id: "scheduling", label: "Teams & Scheduling", description: "Positions, assignments, availability" },
   { id: "events", label: "Events", description: "Games, rehearsals, one-offs & recurring" },
   { id: "worship", label: "Worship Planner", description: "Songs, setlists, in-app media", optional: true },
-  { id: "chat", label: "Chat", description: "Team threads — later", later: true },
+  { id: "chat", label: "Chat", description: "Team channel and plan or event threads", optional: true },
 ];
 
 export const DEFAULT_CHURCH_MODULES: ModuleId[] = ["calendar", "people", "scheduling", "events", "worship"];
@@ -45,7 +45,7 @@ export function normalizeModules(modules: readonly string[] | undefined): Module
   const set = new Set<ModuleId>();
   for (const id of ALWAYS_ON_MODULES) set.add(id);
   for (const raw of modules ?? DEFAULT_CHURCH_MODULES) {
-    if (isModuleId(raw) && raw !== "chat") set.add(raw);
+    if (isModuleId(raw)) set.add(raw);
   }
   return MODULE_IDS.filter((id) => set.has(id));
 }
@@ -66,6 +66,7 @@ export function moduleSummary(modules: readonly ModuleId[]): string {
   if (hasModule(modules, "scheduling")) labels.push("Schedule");
   if (hasModule(modules, "events")) labels.push("Events");
   if (hasModule(modules, "worship")) labels.push("Worship");
+  if (hasModule(modules, "chat")) labels.push("Chat");
   return labels.join(", ");
 }
 

@@ -27,7 +27,7 @@ export default async function SettingsModulesPage() {
       <form action={updateOrgAction} className="mt-8">
         <ModulePicker orgName={store.churchName} orgType={store.orgType} modules={store.modules} />
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted">Resources & Chat stay off for Phase A</p>
+          <p className="text-sm text-muted">Chat is optional and off by default. Resources stay later.</p>
           <div className="flex gap-3">
             <Link href="/settings" className="btn btn-ghost">
               Back
