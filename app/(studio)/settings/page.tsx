@@ -131,7 +131,7 @@ export default async function SettingsPage() {
         <p className="field-label">Demo</p>
         <p className="text-ink-soft">
           Harbor Church ships with twelve songs, two Sundays, and a Saturday league series. Resetting restores the original
-          seed and keeps you signed in.
+          seed, issues a new calendar subscribe token, and keeps you signed in.
         </p>
         {session.role === "director" ? (
           <form action={resetDemoAction}>
