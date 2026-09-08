@@ -10,6 +10,7 @@ export function createSeed(): StoreData {
     orgType: "church",
     modules: ["calendar", "people", "scheduling", "events", "worship"],
     logoFilename: null,
+    logoDataUrl: null,
     icalToken: "harbor-demo-ical",
     users: [
       {

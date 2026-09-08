@@ -83,7 +83,7 @@ See `.env.example`.
 Runtime data:
 
 - Locally: `data/store.json` (created from seed on first read; gitignored) and `data/uploads/`
-- On Vercel: in-memory seed plus `/tmp` (preview instances reset on cold start). Seed rehearsal audio lives at `data/uploads/harbor-rehearsal.wav` and is served only through the session-gated `/api/media/[filename]` route (included in the serverless bundle via `outputFileTracingIncludes`).
+- On Vercel: writes persist in a signed, gzipped store cookie (plus in-memory/`/tmp` on that instance). That is what keeps modules, chat, assignment replies, lockouts, and the sidebar logo across refresh when preview instances hop. Seed rehearsal audio lives at `data/uploads/harbor-rehearsal.wav` and is served only through the session-gated `/api/media/[filename]` route (included in the serverless bundle via `outputFileTracingIncludes`).
 
 Directors can restore Harbor Church from **Settings → Reset demo data**.
 
@@ -111,6 +111,6 @@ data/uploads/   rehearsal audio
 
 ## Notes
 
-This is a local-first MVP. The JSON store is not a multi-instance production database. Vercel previews keep Harbor Church in memory so the build never writes `data/` on a read-only serverless filesystem. Production and Vercel deploys must set `SESSION_SECRET`; the app will not sign or verify sessions without it.
+This is a local-first MVP. The on-disk JSON store is not a multi-instance production database. Vercel previews cannot write `data/`, so the signed store cookie is the durable JSON for that browser session. Production and Vercel deploys must set `SESSION_SECRET`; the app will not sign or verify sessions without it.
 
 `vercel.json` pins the framework to **nextjs** and the build command to `npm run build`. Do not set Output Directory to `public` — Next.js uses `.next` plus serverless functions. If a dashboard override still forces `public`, clear **Project Settings → Build & Output → Output Directory** and leave it empty.

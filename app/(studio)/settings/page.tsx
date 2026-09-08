@@ -67,7 +67,7 @@ export default async function SettingsPage() {
             <p className="text-sm text-ink-soft">
               {ORG_TYPE_LABELS[store.orgType]} · {moduleSummary(store.modules)}
             </p>
-            <LogoUploader initialFilename={store.logoFilename} />
+            <LogoUploader initialFilename={store.logoFilename} initialDataUrl={store.logoDataUrl} />
             <button className="btn btn-ghost" type="submit">
               Save org
             </button>

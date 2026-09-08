@@ -167,6 +167,7 @@ export type StoreData = {
   orgType: OrgType;
   modules: ModuleId[];
   logoFilename: string | null;
+  logoDataUrl: string | null;
   icalToken: string;
   users: User[];
   people: Person[];

@@ -22,6 +22,7 @@ export function AppShell({
   orgType,
   modules,
   logoFilename,
+  logoDataUrl,
   children,
 }: {
   user: PublicUser;
@@ -29,9 +30,10 @@ export function AppShell({
   orgType: OrgType;
   modules: ModuleId[];
   logoFilename?: string | null;
+  logoDataUrl?: string | null;
   children: React.ReactNode;
 }) {
-  const logoSrc = audioSrc(logoFilename);
+  const logoSrc = logoDataUrl || audioSrc(logoFilename);
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const primary = desktopPrimaryNav(modules);

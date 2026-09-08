@@ -17,6 +17,7 @@ export default async function StudioLayout({ children }: { children: React.React
       orgType={store.orgType}
       modules={store.modules}
       logoFilename={store.logoFilename}
+      logoDataUrl={store.logoDataUrl}
     >
       {children}
     </AppShell>

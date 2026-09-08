@@ -70,5 +70,11 @@ export async function POST(request: Request) {
   }
   await saveUpload(filename, buffer);
 
-  return NextResponse.json({ filename });
+  const MAX_DATA_URL_BYTES = 80 * 1024;
+  const dataUrl =
+    logo && buffer.byteLength <= MAX_DATA_URL_BYTES
+      ? `data:${file.type};base64,${Buffer.from(buffer).toString("base64")}`
+      : undefined;
+
+  return NextResponse.json({ filename, dataUrl });
 }

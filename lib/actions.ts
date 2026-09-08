@@ -359,12 +359,15 @@ export async function updateChurchAction(formData: FormData): Promise<void> {
   await requireRole("director");
   const name = String(formData.get("churchName") || formData.get("orgName") || "").trim();
   const logo = String(formData.get("logoFilename") || "");
+  const logoDataUrl = String(formData.get("logoDataUrl") || "");
   await updateStore((store) => {
     if (name) store.churchName = name;
     if (formData.get("clearLogo") === "on") {
       store.logoFilename = null;
-    } else if (logo) {
-      store.logoFilename = logo;
+      store.logoDataUrl = null;
+    } else {
+      if (logo) store.logoFilename = logo;
+      if (logoDataUrl.startsWith("data:image/")) store.logoDataUrl = logoDataUrl;
     }
   });
   refreshApp();

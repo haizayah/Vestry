@@ -96,10 +96,14 @@ export async function updateLockoutAction(formData: FormData): Promise<void> {
 
   await updateStore((store) => {
     const lockout = store.lockouts.find((entry) => entry.id === id);
-    if (!lockout) throw new Error("Lockout not found");
+    if (!lockout) return;
     const person = personOwnedBySession(store, session);
-    assertOwnsLockout(lockout, session, person);
-    if (!person) throw new Error("Forbidden");
+    if (!person) return;
+    try {
+      assertOwnsLockout(lockout, session, person);
+    } catch {
+      return;
+    }
     const owner = bindLockoutOwner(session, person);
     lockout.personId = owner.personId;
     lockout.userId = owner.userId;

@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { normalizeModules } from "./modules";
 import { createSeed } from "./seed";
+import { clearStoreCookie, readStoreCookie, writeStoreCookie } from "./store-cookie";
 import type { StoreData } from "./types";
 
 function serverless() {
@@ -44,6 +45,9 @@ function normalizeStore(data: StoreData): StoreData {
   if (data.logoFilename === undefined) {
     data.logoFilename = null;
   }
+  if (data.logoDataUrl === undefined) {
+    data.logoDataUrl = null;
+  }
   if (!data.icalToken) {
     data.icalToken = "harbor-demo-ical";
   }
@@ -81,22 +85,30 @@ async function readPersisted(): Promise<StoreData | null> {
 }
 
 export async function readStore(): Promise<StoreData> {
-  if (memory && (serverless() || building())) {
+  if (building()) {
+    if (!memory) memory = seedClone();
+    return memory;
+  }
+
+  if (serverless()) {
+    const cookie = await readStoreCookie();
+    if (cookie) {
+      memory = normalizeStore(cookie);
+      return memory;
+    }
+    const persisted = await readPersisted();
+    if (persisted) {
+      memory = persisted;
+      return memory;
+    }
+    if (!memory) memory = seedClone();
     return memory;
   }
 
   const persisted = await readPersisted();
-  if (persisted) {
-    if (serverless()) memory = persisted;
-    return persisted;
-  }
+  if (persisted) return persisted;
 
   const seed = seedClone();
-  if (serverless() || building()) {
-    memory = seed;
-    return seed;
-  }
-
   await persist(seed);
   return seed;
 }
@@ -104,6 +116,9 @@ export async function readStore(): Promise<StoreData> {
 export async function writeStore(data: StoreData): Promise<void> {
   memory = data;
   await persist(data);
+  if (serverless()) {
+    await writeStoreCookie(data);
+  }
 }
 
 export async function updateStore<T>(fn: (store: StoreData) => T | Promise<T>): Promise<T> {
@@ -125,6 +140,10 @@ export async function resetStore(): Promise<StoreData> {
   const seed = seedClone();
   memory = seed;
   await persist(seed);
+  if (serverless()) {
+    await clearStoreCookie();
+    await writeStoreCookie(seed);
+  }
   return seed;
 }
 
