@@ -1,3 +1,4 @@
+import { newId } from "./id";
 import type { StoreData } from "./types";
 
 const now = "2026-09-06T12:00:00.000Z";
@@ -11,7 +12,8 @@ export function createSeed(): StoreData {
     modules: ["calendar", "people", "scheduling", "events", "worship"],
     logoFilename: null,
     logoDataUrl: null,
-    icalToken: "harbor-demo-ical",
+    // Same strength as rotateIcalTokenAction. Reset demo issues a fresh token.
+    icalToken: newId("ical"),
     users: [
       {
         id: "user-elena",

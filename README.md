@@ -23,7 +23,7 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 - YouTube and uploaded audio play **in-app** on song and plan pages
 - Optional Chat (off by default): team channel plus a thread per plan or event
 - Optional Resources (off by default): rooms and gear booked against an event or occurrence — warn-only if double-booked
-- iCal subscribe link for the org calendar (events + plans when Worship is on)
+- iCal subscribe link for the org calendar (events + plans when Worship is on). The feed token is generated at seed time — there is no public demo URL.
 - Org display name and optional logo (sidebar / mark only; accent stays wine)
 - Schedule requests: director assigns, members Accept / Decline; pending on Schedule and Home → Needs attention
 - Light in-app reminder flags on upcoming assignments (Home → Needs attention). No email or push
@@ -85,7 +85,7 @@ Runtime data:
 - Locally: `data/store.json` (created from seed on first read; gitignored) and `data/uploads/`
 - On Vercel: writes persist in a signed, gzipped store cookie (plus in-memory/`/tmp` on that instance). That is what keeps modules, chat, assignment replies, lockouts, and the sidebar logo across refresh when preview instances hop. Seed rehearsal audio lives at `data/uploads/harbor-rehearsal.wav` and is served only through the session-gated `/api/media/[filename]` route (included in the serverless bundle via `outputFileTracingIncludes`).
 
-Directors can restore Harbor Church from **Settings → Reset demo data**.
+Directors can restore Harbor Church from **Settings → Reset demo data**. Reset regenerates a fresh iCal subscribe token (same `newId("ical")` strength as **Rotate feed link**); any previous `/api/ical/…` URL, including the old `harbor-demo-ical` demo token, 404s.
 
 ## Typical Sunday flow
 
@@ -98,7 +98,7 @@ Directors can restore Harbor Church from **Settings → Reset demo data**.
 7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked, including recurring occurrences.
 8. Turn on Chat in Settings → Modules for a team channel and per-plan or per-event threads. Activity on Home logs the lightweight trail.
 9. Turn on Resources for rooms and gear. Book against an event or Sunday — a second booking on the same date warns, it never blocks.
-10. Subscribe to the org calendar from Settings or Calendar. Upload an optional logo in Settings — it lands in the sidebar mark only.
+10. Subscribe to the org calendar from Settings or Calendar (the link is unique per seed; directors can rotate it). Upload an optional logo in Settings — it lands in the sidebar mark only.
 
 ## Project layout
 

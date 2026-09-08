@@ -1,9 +1,14 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { newId } from "./id";
 import { normalizeModules } from "./modules";
 import { createSeed } from "./seed";
 import { clearStoreCookie, readStoreCookie, writeStoreCookie } from "./store-cookie";
 import type { StoreData } from "./types";
+
+export { newId };
+
+const LEAKED_DEMO_ICAL_TOKEN = "harbor-demo-ical";
 
 function serverless() {
   return process.env.VERCEL === "1" || process.env.VERCEL === "true";
@@ -18,6 +23,10 @@ let writeQueue: Promise<void> = Promise.resolve();
 
 function seedClone(): StoreData {
   return structuredClone(createSeed());
+}
+
+function needsIcalRotation(token: string | undefined): boolean {
+  return !token || token === LEAKED_DEMO_ICAL_TOKEN;
 }
 
 function normalizeStore(data: StoreData): StoreData {
@@ -48,8 +57,8 @@ function normalizeStore(data: StoreData): StoreData {
   if (data.logoDataUrl === undefined) {
     data.logoDataUrl = null;
   }
-  if (!data.icalToken) {
-    data.icalToken = "harbor-demo-ical";
+  if (needsIcalRotation(data.icalToken)) {
+    data.icalToken = newId("ical");
   }
   data.modules = normalizeModules(data.modules);
   return data;
@@ -73,12 +82,14 @@ async function persist(data: StoreData) {
 async function readPersisted(): Promise<StoreData | null> {
   if (building()) return null;
   try {
-    if (serverless()) {
-      const raw = await fs.readFile(path.join("/tmp", "vestry-store.json"), "utf8");
-      return normalizeStore(JSON.parse(raw) as StoreData);
-    }
-    const raw = await fs.readFile(path.join(process.cwd(), "data", "store.json"), "utf8");
-    return normalizeStore(JSON.parse(raw) as StoreData);
+    const file = serverless()
+      ? path.join("/tmp", "vestry-store.json")
+      : path.join(process.cwd(), "data", "store.json");
+    const parsed = JSON.parse(await fs.readFile(file, "utf8")) as StoreData;
+    const leaked = needsIcalRotation(parsed.icalToken);
+    const data = normalizeStore(parsed);
+    if (leaked) await persist(data);
+    return data;
   } catch {
     return null;
   }
@@ -93,7 +104,12 @@ export async function readStore(): Promise<StoreData> {
   if (serverless()) {
     const cookie = await readStoreCookie();
     if (cookie) {
+      const leaked = needsIcalRotation(cookie.icalToken);
       memory = normalizeStore(cookie);
+      if (leaked) {
+        await persist(memory);
+        await writeStoreCookie(memory);
+      }
       return memory;
     }
     const persisted = await readPersisted();
@@ -145,10 +161,6 @@ export async function resetStore(): Promise<StoreData> {
     await writeStoreCookie(seed);
   }
   return seed;
-}
-
-export function newId(prefix: string): string {
-  return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
 }
 
 export async function saveUpload(filename: string, buffer: Uint8Array): Promise<void> {
