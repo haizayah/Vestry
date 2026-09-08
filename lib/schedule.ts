@@ -85,6 +85,7 @@ export type SchedulePeek = {
   media?: { ready: number; total: number };
   assignedAccepted: number;
   assignedTotal: number;
+  myAssignment?: Assignment;
   conflicts: PlanConflict[];
 };
 
@@ -96,6 +97,7 @@ export function nextDaysPeek({
   lockouts,
   includePlans,
   includeEvents,
+  personId,
   days = 7,
 }: {
   events: Event[];
@@ -105,6 +107,7 @@ export function nextDaysPeek({
   lockouts: Lockout[];
   includePlans: boolean;
   includeEvents: boolean;
+  personId?: string;
   days?: number;
 }): SchedulePeek[] {
   const start = todayISO();
@@ -125,6 +128,7 @@ export function nextDaysPeek({
           location: event.location,
           assignedAccepted: event.assignments.filter((row) => row.status === "accepted").length,
           assignedTotal: event.assignments.length,
+          myAssignment: personId ? event.assignments.find((row) => row.personId === personId) : undefined,
           conflicts: conflictsForAssignments(event.assignments, occurrence.date, lockouts, people),
         });
       }
@@ -145,6 +149,7 @@ export function nextDaysPeek({
         media: mediaReadyCount(plan, songs),
         assignedAccepted: plan.assignments.filter((row) => row.status === "accepted").length,
         assignedTotal: plan.assignments.length,
+        myAssignment: personId ? plan.assignments.find((row) => row.personId === personId) : undefined,
         conflicts: conflictsForAssignments(plan.assignments, plan.date, lockouts, people),
       });
     }

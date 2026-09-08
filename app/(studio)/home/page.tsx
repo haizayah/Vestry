@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
+import { AssignmentStatusChip } from "@/components/assignment-response";
 import { ConflictChip } from "@/components/conflict-chip";
 import { PendingRequests } from "@/components/pending-requests";
 import { ReminderChip } from "@/components/reminder-chip";
@@ -55,6 +56,7 @@ export default async function HomePage() {
     ...listArgs,
     songs: store.songs,
     includeEvents: eventsOn,
+    personId: person?.id,
   });
   const feed = visibleActivity(store.activity, store.modules).slice(0, 8);
   const awaitingCount = pending.length;
@@ -87,30 +89,10 @@ export default async function HomePage() {
         ) : null}
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <article className="paper-card rounded-3xl p-6">
-          <p className="field-label">This week</p>
-          <p className="font-serif text-4xl tracking-tight">{peek.length}</p>
-          <p className="mt-2 text-sm text-muted">
-            {worshipOn && eventsOn
-              ? "Plans and events in the next 7 days"
-              : worshipOn
-                ? "Plans in the next 7 days"
-                : eventsOn
-                  ? "Events in the next 7 days"
-                  : "Nothing module-backed this week"}
-          </p>
-        </article>
-        <article className="paper-card rounded-3xl p-6">
-          <p className="field-label">{session.role === "director" ? "Awaiting replies" : "Your pending"}</p>
-          <p className="font-serif text-4xl tracking-tight">{awaitingCount}</p>
-        </article>
-      </div>
-
       {needsCount > 0 ? (
         <section className="mt-10 space-y-8">
           <div>
-            <p className="field-label">First</p>
+            <p className="field-label">Now</p>
             <h2 className="font-serif text-3xl tracking-tight text-ink">Needs attention</h2>
           </div>
 
@@ -190,6 +172,26 @@ export default async function HomePage() {
         </section>
       ) : null}
 
+      <div className={`${needsCount > 0 ? "mt-10" : "mt-8"} grid gap-4 sm:grid-cols-2`}>
+        <article className="paper-card rounded-3xl p-6">
+          <p className="field-label">This week</p>
+          <p className="font-serif text-4xl tracking-tight">{peek.length}</p>
+          <p className="mt-2 text-sm text-muted">
+            {worshipOn && eventsOn
+              ? "Plans and events in the next 7 days"
+              : worshipOn
+                ? "Plans in the next 7 days"
+                : eventsOn
+                  ? "Events in the next 7 days"
+                  : "Nothing module-backed this week"}
+          </p>
+        </article>
+        <article className="paper-card rounded-3xl p-6">
+          <p className="field-label">{session.role === "director" ? "Awaiting replies" : "Your pending"}</p>
+          <p className="font-serif text-4xl tracking-tight">{awaitingCount}</p>
+        </article>
+      </div>
+
       <section className="mt-12">
         <p className="field-label">Schedule</p>
         <h2 className="font-serif text-3xl tracking-tight text-ink">Next 7 days</h2>
@@ -229,6 +231,8 @@ export default async function HomePage() {
                 <span className="chip">
                   Assigned {item.assignedAccepted}/{item.assignedTotal}
                 </span>
+                {item.myAssignment ? <AssignmentStatusChip status={item.myAssignment.status} /> : null}
+                {item.myAssignment ? <span className="chip">{item.myAssignment.position}</span> : null}
               </div>
             </Link>
           ))}
