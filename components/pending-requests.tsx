@@ -10,12 +10,14 @@ export function PendingRequests({
   isDirector,
   title = "Pending requests",
   empty,
+  compact = false,
 }: {
   rows: ScheduleRow[];
   viewerPersonId?: string;
   isDirector: boolean;
   title?: string;
   empty?: string;
+  compact?: boolean;
 }) {
   if (rows.length === 0) {
     return empty ? <p className="text-ink-soft">{empty}</p> : null;
@@ -23,8 +25,17 @@ export function PendingRequests({
 
   return (
     <section>
-      <p className="field-label">Needs a reply</p>
-      <h2 className="font-serif text-3xl tracking-tight text-wine-deep">{title}</h2>
+      {compact ? (
+        <>
+          <p className="field-label">Needs a reply</p>
+          <h3 className="font-serif text-2xl tracking-tight text-ink">{title}</h3>
+        </>
+      ) : (
+        <>
+          <p className="field-label">Needs a reply</p>
+          <h2 className="font-serif text-3xl tracking-tight text-ink">{title}</h2>
+        </>
+      )}
       <ul className="mt-4 space-y-3">
         {rows.map((row) => {
           const canRespond = isDirector || row.assignment.personId === viewerPersonId;

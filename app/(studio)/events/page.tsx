@@ -6,6 +6,7 @@ import { formatShortDate } from "@/lib/format";
 import { hasModule } from "@/lib/modules";
 import { recurrenceSummary } from "@/lib/recurrence";
 import { readStore } from "@/lib/store";
+import { ModuleOffState } from "@/components/module-off-state";
 
 export const metadata: Metadata = { title: "Events" };
 
@@ -13,7 +14,7 @@ export default async function EventsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
-  if (!hasModule(store.modules, "events")) redirect("/home");
+  if (!hasModule(store.modules, "events")) return <ModuleOffState moduleId="events" />;
   const events = [...store.events].sort((a, b) => a.date.localeCompare(b.date));
 
   return (

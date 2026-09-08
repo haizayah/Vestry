@@ -87,7 +87,7 @@ export function LogoUploader({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         {dataUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={dataUrl} alt="" className="h-12 w-12 rounded-xl object-cover ring-1 ring-gold/40" />
+          <img src={dataUrl} alt="" className="h-12 w-12 rounded-xl object-cover ring-1 ring-line" />
         ) : null}
         <label className="btn btn-ghost cursor-pointer">
           {busy ? "Uploading…" : filename ? "Replace logo" : "Upload png / jpg / webp"}
@@ -108,7 +108,8 @@ export function LogoUploader({
       </div>
       {status ? <p className="mt-2 text-sm text-muted">{status}</p> : null}
       <p className="mt-2 text-sm text-muted">
-        Same 25 MB upload limit as rehearsal audio. Vestry shrinks the mark for the sidebar. Accent stays wine.
+        Same 25 MB upload limit as rehearsal audio. Vestry shrinks the mark for the sidebar. Accent follows Church (wine)
+        or Sports (teal).
       </p>
     </div>
   );

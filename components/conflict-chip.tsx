@@ -4,7 +4,7 @@ export function ConflictChip({
   tooltip: string;
 }) {
   return (
-    <span className="chip border-gold/55 bg-gold/15 text-wine-deep" title={tooltip}>
+    <span className="chip border-gold/55 bg-gold/15 text-ink" title={tooltip}>
       Conflict
     </span>
   );

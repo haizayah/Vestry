@@ -25,7 +25,7 @@ export default async function LandingPage() {
   const session = await getSession();
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full" data-brand="vestry">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
         <VestryMark />
         <div className="flex items-center gap-3">

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { logoutAction } from "@/lib/actions";
 import { roleLabel } from "@/lib/modules";
 import { desktopPrimaryNav, dockItems, moreItems } from "@/lib/nav";
+import { orgAccent } from "@/lib/theme";
 import type { ModuleId, OrgType, PublicUser } from "@/lib/types";
 import { DockIcon, MoreIcon } from "./nav-icons";
 import { audioSrc } from "@/lib/media";
@@ -37,18 +38,18 @@ export function AppShell({
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const primary = desktopPrimaryNav(modules);
-  const dock = dockItems(modules);
+  const dock = dockItems();
   const more = moreItems(modules);
   const moreActive = more.some((item) => isActive(pathname, item.href));
 
   return (
-    <div className="min-h-full bg-paper">
+    <div className="min-h-full bg-paper" data-org-type={orgAccent(orgType)}>
       <div className="mx-auto flex min-h-screen max-w-[1440px]">
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-wine-deep px-5 py-6 text-on-deep md:flex">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-ink px-5 py-6 text-on-deep md:flex">
           <Link href="/home" className="mb-10 flex items-center gap-3">
             {logoSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoSrc} alt="" className="h-10 w-10 rounded-xl object-cover ring-1 ring-gold/40" />
+              <img src={logoSrc} alt="" className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/20" />
             ) : null}
             <VestryMark tone="on-deep" />
           </Link>
@@ -56,35 +57,18 @@ export function AppShell({
             {primary.map((item) => {
               const active = isActive(pathname, item.href);
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`rounded-xl px-3 py-2.5 text-sm transition ${
-                    active ? "bg-on-deep/12 text-white" : "text-on-deep/70 hover:bg-on-deep/8 hover:text-white"
-                  }`}
-                >
+                <Link key={item.href} href={item.href} className={`nav-row ${active ? "nav-row-active" : ""}`}>
                   {item.label}
                 </Link>
               );
             })}
             <p className="mt-6 mb-1 px-3 text-[0.62rem] uppercase tracking-[0.16em] text-on-deep/40">Account</p>
-            <Link
-              href="/settings"
-              className={`rounded-xl px-3 py-2.5 text-sm transition ${
-                isActive(pathname, "/settings")
-                  ? "bg-on-deep/12 text-white"
-                  : "text-on-deep/70 hover:bg-on-deep/8 hover:text-white"
-              }`}
-            >
+            <Link href="/settings" className={`nav-row ${isActive(pathname, "/settings") ? "nav-row-active" : ""}`}>
               Settings
             </Link>
             <Link
               href="/availability"
-              className={`rounded-xl px-3 py-2.5 text-sm transition ${
-                isActive(pathname, "/availability")
-                  ? "bg-on-deep/12 text-white"
-                  : "text-on-deep/70 hover:bg-on-deep/8 hover:text-white"
-              }`}
+              className={`nav-row ${isActive(pathname, "/availability") ? "nav-row-active" : ""}`}
             >
               Availability
             </Link>
@@ -107,7 +91,7 @@ export function AppShell({
             <Link href="/home" className="flex items-center gap-2.5">
               {logoSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoSrc} alt="" className="h-8 w-8 rounded-lg object-cover ring-1 ring-gold/40" />
+                <img src={logoSrc} alt="" className="h-8 w-8 rounded-lg object-cover ring-1 ring-line" />
               ) : null}
               <VestryMark />
             </Link>
@@ -126,15 +110,15 @@ export function AppShell({
             onClick={() => setMoreOpen(false)}
           />
           <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[1.75rem] border-t border-line bg-paper px-5 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-18px_40px_-28px_rgba(28,25,20,0.45)] md:hidden">
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gold/50" />
-            <h2 className="font-serif text-3xl text-wine-deep">More</h2>
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-line" />
+            <h2 className="font-serif text-3xl text-ink">More</h2>
             <ul className="mt-4">
               {more.map((item) => (
                 <li key={item.href} className="border-b border-line/80 last:border-0">
                   <Link
                     href={item.href}
                     onClick={() => setMoreOpen(false)}
-                    className="flex items-center justify-between py-4 text-[1.05rem] text-wine-deep"
+                    className="flex items-center justify-between py-4 text-[1.05rem] text-ink"
                   >
                     <span>{item.label}</span>
                     {item.moreMeta ? <span className="text-sm text-muted">{item.moreMeta}</span> : null}
@@ -158,7 +142,7 @@ export function AppShell({
               href={item.href}
               onClick={() => setMoreOpen(false)}
               className={`flex flex-col items-center gap-1 rounded-lg px-0.5 py-1.5 text-[0.62rem] tracking-wide ${
-                active && !moreOpen ? "text-wine-deep" : "text-wine-deep/55"
+                active && !moreOpen ? "text-accent-deep" : "text-slate"
               }`}
             >
               <DockIcon href={item.href} className="h-5 w-5" />
@@ -170,7 +154,7 @@ export function AppShell({
           type="button"
           onClick={() => setMoreOpen((open) => !open)}
           className={`flex flex-col items-center gap-1 rounded-lg px-0.5 py-1.5 text-[0.62rem] tracking-wide ${
-            moreOpen || moreActive ? "text-wine-deep" : "text-wine-deep/55"
+            moreOpen || moreActive ? "text-accent-deep" : "text-slate"
           }`}
         >
           <MoreIcon className="h-5 w-5" />

@@ -7,6 +7,7 @@ import {
   ORG_TYPE_LABELS,
   suggestedModules,
 } from "@/lib/modules";
+import { ACCENT_PRESETS, orgAccent } from "@/lib/theme";
 import { ORG_TYPES, type ModuleId, type OrgType } from "@/lib/types";
 
 export function ModulePicker({
@@ -38,7 +39,7 @@ export function ModulePicker({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-org-type={orgAccent(type)}>
       <input type="hidden" name={nameField} value={orgName} />
       <input type="hidden" name="orgType" value={type} />
       {ALWAYS_ON_MODULES.map((id) => (
@@ -53,17 +54,19 @@ export function ModulePicker({
       <div className="flex flex-wrap gap-2">
         {ORG_TYPES.map((option) => {
           const active = type === option;
+          const swatch = ACCENT_PRESETS[orgAccent(option)];
           return (
             <button
               key={option}
               type="button"
               onClick={() => chooseType(option)}
-              className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
-                active ? "border-2 border-wine-deep bg-card text-wine-deep" : "border border-line bg-card text-ink-soft"
+              className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition ${
+                active ? "border-2 border-accent-deep bg-card text-accent-deep" : "border border-line bg-card text-ink-soft"
               }`}
             >
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: swatch.deep }} />
               {ORG_TYPE_LABELS[option]}
-              {active ? " ✓" : ""}
+              {active ? ` · ${swatch.label}` : ""}
             </button>
           );
         })}
@@ -83,22 +86,22 @@ export function ModulePicker({
                 card.later ? "opacity-55" : ""
               } ${
                 on && !card.later
-                  ? "border-2 border-wine-deep bg-card"
+                  ? "border-2 border-accent-deep bg-card"
                   : "border border-transparent bg-paper-deep/40"
               }`}
             >
               {on && !card.later ? (
-                <span className="absolute top-4 right-4 grid h-6 w-6 place-items-center rounded-full bg-gold text-[0.7rem] text-wine-deep">
+                <span className="absolute top-4 right-4 grid h-6 w-6 place-items-center rounded-full bg-accent-deep text-[0.7rem] text-on-accent">
                   ✓
                 </span>
               ) : null}
-              <p className="pr-8 font-serif text-2xl text-wine-deep">{card.label}</p>
+              <p className="pr-8 font-serif text-2xl text-accent-deep">{card.label}</p>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{card.description}</p>
               {card.alwaysOn ? (
-                <p className="mt-4 text-[0.62rem] uppercase tracking-[0.16em] text-gold">Always on</p>
+                <p className="mt-4 text-[0.62rem] uppercase tracking-[0.16em] text-muted">Always on</p>
               ) : null}
               {card.optional ? (
-                <p className="mt-4 text-[0.62rem] uppercase tracking-[0.16em] text-gold">Optional</p>
+                <p className="mt-4 text-[0.62rem] uppercase tracking-[0.16em] text-muted">Optional</p>
               ) : null}
             </button>
           );

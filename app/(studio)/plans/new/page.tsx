@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { createPlanAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
 import { todayISO } from "@/lib/format";
-import { requireModule } from "@/lib/guards";
+import { hasModule } from "@/lib/modules";
 import { readStore } from "@/lib/store";
+import { ModuleOffState } from "@/components/module-off-state";
 
 export const metadata: Metadata = { title: "New plan" };
 
@@ -12,7 +13,8 @@ export default async function NewPlanPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "director") redirect("/plans");
-  requireModule(await readStore(), "worship");
+  const store = await readStore();
+  if (!hasModule(store.modules, "worship")) return <ModuleOffState moduleId="worship" />;
 
   return (
     <div className="mx-auto max-w-xl">

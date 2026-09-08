@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="grid min-h-full lg:grid-cols-2">
+    <div className="grid min-h-full lg:grid-cols-2" data-brand="vestry">
       <div className="flex flex-col px-5 py-6 md:px-10">
         <Link href="/">
           <VestryMark />

@@ -4,13 +4,13 @@ import { deletePlanAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
 import { formatPlanDate } from "@/lib/format";
 import { mediaReadyCount } from "@/lib/media";
-import { requireModule } from "@/lib/guards";
 import { hasModule } from "@/lib/modules";
 import { readStore } from "@/lib/store";
 import { BookResourceForm, ResourceBookingList } from "@/components/resource-bookings";
 import { PlanWorkspace } from "@/components/plan-workspace";
 import { computeAssignmentConflicts } from "@/lib/lockout-api";
 import { bookingsForTarget } from "@/lib/resources";
+import { ModuleOffState } from "@/components/module-off-state";
 
 export const metadata: Metadata = { title: "Plan" };
 
@@ -19,7 +19,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   if (!session) redirect("/login");
   const { id } = await params;
   const store = await readStore();
-  requireModule(store, "worship");
+  if (!hasModule(store.modules, "worship")) return <ModuleOffState moduleId="worship" />;
   const plan = store.plans.find((p) => p.id === id);
   if (!plan) notFound();
   const ready = mediaReadyCount(plan, store.songs);

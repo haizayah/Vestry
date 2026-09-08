@@ -7,6 +7,7 @@ import { ConflictChip } from "@/components/conflict-chip";
 import { ReminderChip } from "@/components/reminder-chip";
 import { ReminderToggle } from "@/components/reminder-toggle";
 import { BookResourceForm, ResourceBookingList } from "@/components/resource-bookings";
+import { ModuleOffState } from "@/components/module-off-state";
 import { chatHref } from "@/lib/chat";
 import { getSession } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
@@ -23,7 +24,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
-  if (!hasModule(store.modules, "events")) redirect("/home");
+  if (!hasModule(store.modules, "events")) return <ModuleOffState moduleId="events" />;
   const { id } = await params;
   const event = store.events.find((entry) => entry.id === id);
   if (!event) notFound();

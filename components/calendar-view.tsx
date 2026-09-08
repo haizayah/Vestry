@@ -323,8 +323,8 @@ function PlanChip({
       onClick={(event) => event.stopPropagation()}
       className={
         conflict
-          ? "block truncate rounded-full border border-gold bg-gold/20 px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-wine-deep hover:bg-gold/30"
-          : "block truncate rounded-full bg-wine-mid px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-on-deep hover:bg-wine"
+          ? "block truncate rounded-full border border-gold bg-gold/20 px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-ink hover:bg-gold/30"
+          : "block truncate rounded-full bg-accent-mid px-2 py-0.5 text-[0.65rem] font-medium leading-tight text-on-accent hover:bg-accent"
       }
     >
       {conflict ? `Conflict · ${label}` : label}
@@ -336,8 +336,8 @@ function EventChip({ event, highlightConflicts }: { event: CalendarEvent; highli
   const conflict = Boolean(highlightConflicts && event.conflicts && event.conflicts.length > 0);
   const label = event.time ? `${event.time} · ${event.title}` : event.title;
   const className = conflict
-    ? "block truncate rounded-full border border-gold bg-gold/20 px-2 py-0.5 text-[0.65rem] leading-tight text-wine-deep"
-    : "block truncate rounded-full border border-gold/70 bg-gold/15 px-2 py-0.5 text-[0.65rem] leading-tight text-wine-deep";
+    ? "block truncate rounded-full border border-gold bg-gold/20 px-2 py-0.5 text-[0.65rem] leading-tight text-ink"
+    : "block truncate rounded-full border border-accent-mid/50 bg-accent/10 px-2 py-0.5 text-[0.65rem] leading-tight text-accent-deep";
   if (event.href) {
     return (
       <Link href={event.href} title={event.title} onClick={(click) => click.stopPropagation()} className={className}>
@@ -688,8 +688,8 @@ function DayPanel({
           </li>
         ))}
         {events.map((event) => (
-          <li key={event.id} className="rounded-2xl bg-gold/15 px-4 py-3">
-            <p className="text-[0.68rem] uppercase tracking-[0.12em] text-gold">Event</p>
+          <li key={event.id} className="rounded-2xl bg-accent/10 px-4 py-3">
+            <p className="text-[0.68rem] uppercase tracking-[0.12em] text-accent-mid">Event</p>
             {event.href ? (
               <Link href={event.href} className="font-serif text-xl text-wine underline-offset-4 hover:underline">
                 {event.title}
