@@ -71,7 +71,7 @@ export default async function SettingsPage() {
             <p className="field-label">Modules</p>
             <p className="text-ink-soft">
               Toggle hides nav and routes. Songs, plans, events, and chat stay saved. Worship and Chat are optional —
-              Calendar and People stay on. Chat is off until you enable it.
+              Calendar and People stay on.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/settings/modules" className="btn btn-primary">
