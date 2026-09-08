@@ -11,7 +11,14 @@ export default async function StudioLayout({ children }: { children: React.React
   const store = await readStore();
 
   return (
-    <AppShell user={session} churchName={store.churchName}>
+    <AppShell
+      user={session}
+      orgName={store.churchName}
+      orgType={store.orgType}
+      modules={store.modules}
+      logoFilename={store.logoFilename}
+      logoDataUrl={store.logoDataUrl}
+    >
       {children}
     </AppShell>
   );

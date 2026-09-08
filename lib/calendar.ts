@@ -19,6 +19,9 @@ export type CalendarEvent = {
   title: string;
   date: string;
   time?: string;
+  href?: string;
+  assigned?: boolean;
+  conflicts?: CalendarConflict[];
 };
 
 export const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;

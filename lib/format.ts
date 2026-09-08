@@ -38,3 +38,21 @@ export function isUpcoming(isoDate: string): boolean {
 export function firstName(name: string): string {
   return name.split(" ")[0] ?? name;
 }
+
+export function timeGreeting(now = new Date()): "Good morning" | "Good afternoon" | "Good evening" {
+  const hour = now.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+export function formatStamp(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
