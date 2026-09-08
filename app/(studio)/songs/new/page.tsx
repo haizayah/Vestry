@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { SongForm } from "@/components/song-form";
 import { createSongAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
-import { requireModule } from "@/lib/guards";
+import { hasModule } from "@/lib/modules";
 import { readStore } from "@/lib/store";
+import { ModuleOffState } from "@/components/module-off-state";
 
 export const metadata: Metadata = { title: "New song" };
 
@@ -12,7 +13,8 @@ export default async function NewSongPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "director") redirect("/songs");
-  requireModule(await readStore(), "worship");
+  const store = await readStore();
+  if (!hasModule(store.modules, "worship")) return <ModuleOffState moduleId="worship" />;
 
   return (
     <div className="mx-auto max-w-2xl">

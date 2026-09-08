@@ -60,16 +60,31 @@ export function orgName(store: Pick<StoreData, "churchName">): string {
   return store.churchName;
 }
 
+export const MODULE_SHORT_LABELS: Record<ModuleId, string> = {
+  calendar: "Calendar",
+  people: "People",
+  scheduling: "Schedule",
+  events: "Events",
+  worship: "Worship",
+  chat: "Chat",
+  resources: "Resources",
+};
+
 export function moduleSummary(modules: readonly ModuleId[]): string {
-  const labels: string[] = [];
-  if (hasModule(modules, "calendar")) labels.push("Calendar");
-  if (hasModule(modules, "people")) labels.push("People");
-  if (hasModule(modules, "scheduling")) labels.push("Schedule");
-  if (hasModule(modules, "events")) labels.push("Events");
-  if (hasModule(modules, "worship")) labels.push("Worship");
-  if (hasModule(modules, "chat")) labels.push("Chat");
-  if (hasModule(modules, "resources")) labels.push("Resources");
-  return labels.join(", ");
+  return enabledModuleChips(modules)
+    .map((chip) => chip.label)
+    .join(", ");
+}
+
+export function enabledModuleChips(modules: readonly ModuleId[]): { id: ModuleId; label: string }[] {
+  return MODULE_IDS.filter((id) => hasModule(modules, id)).map((id) => ({
+    id,
+    label: MODULE_SHORT_LABELS[id],
+  }));
+}
+
+export function moduleOffTitle(id: ModuleId): string {
+  return `${MODULE_SHORT_LABELS[id]} is off for this org`;
 }
 
 export function positionsFor(orgType: OrgType, modules: readonly ModuleId[]): readonly string[] {

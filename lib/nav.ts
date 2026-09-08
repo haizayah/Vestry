@@ -8,16 +8,24 @@ export type NavItem = {
   moreMeta?: string;
 };
 
-export const PRIMARY_NAV: NavItem[] = [
+export const CORE_NAV: NavItem[] = [
   { href: "/home", label: "Home" },
-  { href: "/calendar", label: "Calendar", module: "calendar" },
-  { href: "/people", label: "People", module: "people" },
-  { href: "/schedule", label: "Schedule", module: "scheduling" },
-  { href: "/events", label: "Events", module: "events" },
-  { href: "/chat", label: "Chat", module: "chat" },
-  { href: "/resources", label: "Resources", module: "resources" },
-  { href: "/plans", label: "Plans", module: "worship" },
-  { href: "/songs", label: "Songs", module: "worship" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/people", label: "People" },
+  { href: "/schedule", label: "Schedule" },
+];
+
+export const MODULE_NAV: NavItem[] = [
+  { href: "/events", label: "Events", module: "events", moreMeta: "On" },
+  { href: "/plans", label: "Plans", module: "worship", moreMeta: "Worship" },
+  { href: "/songs", label: "Songs", module: "worship", moreMeta: "Worship" },
+  { href: "/chat", label: "Chat", module: "chat", moreMeta: "On" },
+  { href: "/resources", label: "Resources", module: "resources", moreMeta: "On" },
+];
+
+export const ACCOUNT_NAV: NavItem[] = [
+  { href: "/settings", label: "Settings" },
+  { href: "/availability", label: "Availability" },
 ];
 
 export function visibleNav(items: NavItem[], modules: readonly ModuleId[]): NavItem[] {
@@ -25,32 +33,13 @@ export function visibleNav(items: NavItem[], modules: readonly ModuleId[]): NavI
 }
 
 export function desktopPrimaryNav(modules: readonly ModuleId[]): NavItem[] {
-  return visibleNav(PRIMARY_NAV, modules);
+  return [...CORE_NAV, ...visibleNav(MODULE_NAV, modules)];
 }
 
 export function moreItems(modules: readonly ModuleId[]): NavItem[] {
-  const extras: NavItem[] = [];
-  if (hasModule(modules, "events")) extras.push({ href: "/events", label: "Events", moreMeta: "On" });
-  if (hasModule(modules, "chat")) extras.push({ href: "/chat", label: "Chat", moreMeta: "On" });
-  if (hasModule(modules, "resources")) extras.push({ href: "/resources", label: "Resources", moreMeta: "On" });
-  if (hasModule(modules, "worship")) {
-    extras.push({ href: "/plans", label: "Plans", moreMeta: "Worship" });
-    extras.push({ href: "/songs", label: "Songs", moreMeta: "Worship" });
-  }
-  if (hasModule(modules, "scheduling")) {
-    extras.push({ href: "/availability", label: "Availability", moreMeta: "Scheduling" });
-  }
-  extras.push({ href: "/settings", label: "Settings" });
-  return extras;
+  return [...visibleNav(MODULE_NAV, modules), ...ACCOUNT_NAV];
 }
 
-export function dockItems(modules: readonly ModuleId[]): NavItem[] {
-  const dock: NavItem[] = [
-    { href: "/home", label: "Home" },
-    { href: "/calendar", label: "Calendar" },
-    { href: "/people", label: "People" },
-  ];
-  if (hasModule(modules, "scheduling")) dock.push({ href: "/schedule", label: "Schedule" });
-  else if (hasModule(modules, "events")) dock.push({ href: "/events", label: "Events" });
-  return dock;
+export function dockItems(): NavItem[] {
+  return CORE_NAV;
 }

@@ -141,9 +141,9 @@ export function NewEventForm({
         </>
       ) : null}
 
-      <div className="rounded-2xl border border-gold/45 bg-gold/15 px-4 py-3 text-sm text-wine-deep">
+      <div className="rounded-2xl border border-gold/45 bg-gold/15 px-4 py-3 text-sm text-ink">
         <p className="font-medium">Conflicts stay warn-only.</p>
-        <p className="mt-1 text-wine-deep/80">
+        <p className="mt-1 text-ink/80">
           If an assignee has a lockout on an occurrence, show a gold Conflict chip — never block save.
         </p>
       </div>

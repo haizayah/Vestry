@@ -1,23 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f3eee4;
+  --paper: #f7f2e9;
   --paper-deep: #e7dfd0;
   --ink: #1c1914;
   --ink-soft: #3c372f;
+  --slate: #3a3f46;
   --muted: #7a7266;
-  --wine-deep: #4a1c28;
-  --wine: #6b2d3c;
-  --wine-mid: #8a3d4f;
+  --brand-wine-deep: #4a1c28;
+  --brand-wine: #6b2d3c;
+  --brand-wine-mid: #8a3d4f;
+  --accent-deep: var(--brand-wine-deep);
+  --accent: var(--brand-wine);
+  --accent-mid: var(--brand-wine-mid);
+  --on-accent: #f6f1e8;
+  --wine-deep: var(--accent-deep);
+  --wine: var(--accent);
+  --wine-mid: var(--accent-mid);
   --gold: #c4a574;
-  --card: #fffaf1;
-  --line: #d8cfbf;
+  --card: #ffffff;
+  --line: #d4cdc0;
   --rose: #8c4d45;
   --good: #3d6b4f;
   --on-deep: #f6f1e8;
-  /* Path A §3 dock geometry — keep wine/parchment tokens unchanged */
+  /* Path A §3 dock geometry — parchment tokens stay; accent binds to orgType */
   --dock-nav-clearance: calc(4.75rem + env(safe-area-inset-bottom, 0px));
   --dock-max-height: min(48vh, 26rem);
+}
+
+[data-brand="vestry"] {
+  --accent-deep: var(--brand-wine-deep);
+  --accent: var(--brand-wine);
+  --accent-mid: var(--brand-wine-mid);
+}
+
+[data-org-type="sports"] {
+  --accent-deep: #0f3d38;
+  --accent: #1a6b63;
+  --accent-mid: #2a8f85;
 }
 
 @media (min-width: 768px) {
@@ -37,10 +57,15 @@
   --color-paper-deep: var(--paper-deep);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-slate: var(--slate);
   --color-muted: var(--muted);
-  --color-wine: var(--wine);
-  --color-wine-deep: var(--wine-deep);
-  --color-wine-mid: var(--wine-mid);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-mid: var(--accent-mid);
+  --color-on-accent: var(--on-accent);
+  --color-wine: var(--accent);
+  --color-wine-deep: var(--accent-deep);
+  --color-wine-mid: var(--accent-mid);
   --color-gold: var(--gold);
   --color-card: var(--card);
   --color-line: var(--line);
@@ -104,8 +129,8 @@ body {
 }
 
 .field:focus {
-  border-color: var(--wine);
-  box-shadow: 0 0 0 3px rgba(74, 28, 40, 0.14);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-deep) 14%, transparent);
 }
 
 .field-label {
@@ -136,7 +161,7 @@ body {
 
 .btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(74, 28, 40, 0.18);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-deep) 18%, transparent);
 }
 
 .btn:disabled {
@@ -145,17 +170,17 @@ body {
 }
 
 .btn-primary {
-  background: var(--wine-deep);
-  color: var(--on-deep);
+  background: var(--accent-deep);
+  color: var(--on-accent);
 }
 
 .btn-primary:hover {
-  background: var(--wine);
+  background: var(--accent);
 }
 
 .btn-gold {
   background: var(--gold);
-  color: var(--wine-deep);
+  color: var(--brand-wine-deep);
 }
 
 .btn-gold:hover {
@@ -193,9 +218,39 @@ body {
 }
 
 .chip-active {
-  border-color: var(--wine);
-  color: var(--wine);
-  background: rgba(74, 28, 40, 0.05);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent-deep) 5%, transparent);
+}
+
+.nav-row {
+  position: relative;
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.75rem 0.625rem 0.9rem;
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--on-deep) 70%, transparent);
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.nav-row:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+}
+
+.nav-row-active {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+}
+
+.nav-row-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 3px;
+  border-radius: 99px;
+  background: var(--accent-mid);
 }
 
 .chip.text-good {

@@ -77,7 +77,8 @@ export default async function SettingsPage() {
             <p className="field-label">Modules</p>
             <p className="text-ink-soft">
               Toggle hides nav and routes. Songs, plans, events, chat, and rooms stay saved. Worship, Chat, and
-              Resources are optional — Calendar and People stay on.
+              Resources are optional — Calendar and People stay on. Accent follows org type (wine for Church, teal for
+              Sports).
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/settings/modules" className="btn btn-primary">
@@ -89,18 +90,25 @@ export default async function SettingsPage() {
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
               <form action={applyOrgPresetAction}>
-                <input type="hidden" name="preset" value="sports" />
-                <button className="btn btn-ghost" type="submit">
-                  Use Harbor FC (Sports)
-                </button>
-              </form>
-              <form action={applyOrgPresetAction}>
                 <input type="hidden" name="preset" value="church" />
                 <button className="btn btn-ghost" type="submit">
+                  <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#4a1c28" }} />
                   Use Harbor Church
                 </button>
               </form>
+              <form action={applyOrgPresetAction}>
+                <input type="hidden" name="preset" value="sports" />
+                <button className="btn btn-ghost" type="submit">
+                  <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#0f3d38" }} />
+                  Use Harbor FC (Sports)
+                </button>
+              </form>
             </div>
+            {store.orgType === "sports" ? (
+              <p className="text-sm text-muted">Sports accent is teal. Gold stays on Conflict chips only.</p>
+            ) : (
+              <p className="text-sm text-muted">Church accent is wine. Gold stays on Conflict chips only.</p>
+            )}
             {hasModule(store.modules, "worship") ? null : (
               <p className="text-sm text-muted">Worship is off — Plans and Songs are hidden, not deleted.</p>
             )}

@@ -20,8 +20,6 @@ export default async function SchedulePage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
-  if (!hasModule(store.modules, "scheduling")) redirect("/home");
-
   const lockouts = await listLockoutsForConflictRead();
   const person = store.people.find((entry) => entry.userId === session.id);
   const listArgs = {

@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import { BookResourceForm, ResourceBookingList } from "@/components/resource-bookings";
 import { createResourceAction, deleteResourceAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
-import { requireModule } from "@/lib/guards";
 import { hasModule } from "@/lib/modules";
 import { bookableSlots, RESOURCE_KIND_LABELS } from "@/lib/resources";
 import { readStore } from "@/lib/store";
+import { ModuleOffState } from "@/components/module-off-state";
 
 export const metadata: Metadata = { title: "Resources" };
 
@@ -14,7 +14,7 @@ export default async function ResourcesPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
-  requireModule(store, "resources");
+  if (!hasModule(store.modules, "resources")) return <ModuleOffState moduleId="resources" />;
   const director = session.role === "director";
   const slots = bookableSlots(store, hasModule(store.modules, "worship"));
   const rooms = store.resources.filter((resource) => resource.kind === "room");

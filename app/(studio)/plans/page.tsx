@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { formatPlanDate, isUpcoming } from "@/lib/format";
 import { mediaReadyCount } from "@/lib/media";
-import { requireModule } from "@/lib/guards";
+import { hasModule } from "@/lib/modules";
 import { readStore } from "@/lib/store";
+import { ModuleOffState } from "@/components/module-off-state";
 
 export const metadata: Metadata = { title: "Plans" };
 
@@ -13,7 +14,7 @@ export default async function PlansPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
-  requireModule(store, "worship");
+  if (!hasModule(store.modules, "worship")) return <ModuleOffState moduleId="worship" />;
   const plans = [...store.plans].sort((a, b) => a.date.localeCompare(b.date));
 
   return (

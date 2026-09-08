@@ -70,7 +70,7 @@ export function ChatRoom({
                       <p className="font-medium text-wine-deep">{author?.name ?? "Someone"}</p>
                       <p className="text-sm text-muted">{formatStamp(message.createdAt)}</p>
                     </div>
-                    <p className="mt-0.5 text-xs uppercase tracking-[0.12em] text-gold">
+                    <p className="mt-0.5 text-xs uppercase tracking-[0.12em] text-muted">
                       {author ? roleLabel(author.role) : "Member"}
                     </p>
                     <p className="mt-2 leading-relaxed text-ink-soft">{message.body}</p>

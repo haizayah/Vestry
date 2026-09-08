@@ -1,7 +1,9 @@
+import { addDaysISO } from "./calendar";
 import { todayISO } from "./format";
 import { conflictsForAssignments, type PlanConflict } from "./lockouts";
+import { mediaReadyCount } from "./media";
 import { expandOccurrences, type EventOccurrence } from "./recurrence";
-import type { Assignment, Event, Lockout, Person, Plan } from "./types";
+import type { Assignment, Event, Lockout, Person, Plan, Song } from "./types";
 
 export type ScheduleRow = {
   key: string;
@@ -69,6 +71,86 @@ export function pendingRequestRows(
     return rows.filter((row) => row.assignment.personId === args.personId);
   }
   return rows;
+}
+
+export type SchedulePeek = {
+  key: string;
+  kind: "plan" | "event";
+  href: string;
+  title: string;
+  date: string;
+  time: string;
+  location?: string;
+  itemCount?: number;
+  media?: { ready: number; total: number };
+  assignedAccepted: number;
+  assignedTotal: number;
+  conflicts: PlanConflict[];
+};
+
+export function nextDaysPeek({
+  events,
+  plans,
+  songs,
+  people,
+  lockouts,
+  includePlans,
+  includeEvents,
+  days = 7,
+}: {
+  events: Event[];
+  plans: Plan[];
+  songs: Song[];
+  people: Person[];
+  lockouts: Lockout[];
+  includePlans: boolean;
+  includeEvents: boolean;
+  days?: number;
+}): SchedulePeek[] {
+  const start = todayISO();
+  const end = addDaysISO(start, days - 1);
+  const items: SchedulePeek[] = [];
+
+  if (includeEvents) {
+    for (const event of events) {
+      for (const occurrence of expandOccurrences(event, end)) {
+        if (occurrence.date < start || occurrence.date > end) continue;
+        items.push({
+          key: `event:${event.id}:${occurrence.date}`,
+          kind: "event",
+          href: `/events/${event.id}`,
+          title: event.title,
+          date: occurrence.date,
+          time: event.time,
+          location: event.location,
+          assignedAccepted: event.assignments.filter((row) => row.status === "accepted").length,
+          assignedTotal: event.assignments.length,
+          conflicts: conflictsForAssignments(event.assignments, occurrence.date, lockouts, people),
+        });
+      }
+    }
+  }
+
+  if (includePlans) {
+    for (const plan of plans) {
+      if (plan.date < start || plan.date > end) continue;
+      items.push({
+        key: `plan:${plan.id}`,
+        href: `/plans/${plan.id}`,
+        kind: "plan",
+        title: plan.name,
+        date: plan.date,
+        time: plan.serviceTime,
+        itemCount: plan.items.length,
+        media: mediaReadyCount(plan, songs),
+        assignedAccepted: plan.assignments.filter((row) => row.status === "accepted").length,
+        assignedTotal: plan.assignments.length,
+        conflicts: conflictsForAssignments(plan.assignments, plan.date, lockouts, people),
+      });
+    }
+  }
+
+  return items.sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
 }
 
 function pushAssignments(

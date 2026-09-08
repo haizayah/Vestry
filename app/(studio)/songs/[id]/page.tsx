@@ -7,8 +7,9 @@ import { deleteSongAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
 import { formatTempo } from "@/lib/format";
 import { audioSrc, hasYouTube } from "@/lib/media";
-import { requireModule } from "@/lib/guards";
+import { hasModule } from "@/lib/modules";
 import { readStore } from "@/lib/store";
+import { ModuleOffState } from "@/components/module-off-state";
 
 export const metadata: Metadata = { title: "Song" };
 
@@ -17,7 +18,7 @@ export default async function SongPage({ params }: { params: Promise<{ id: strin
   if (!session) redirect("/login");
   const { id } = await params;
   const store = await readStore();
-  requireModule(store, "worship");
+  if (!hasModule(store.modules, "worship")) return <ModuleOffState moduleId="worship" />;
   const song = store.songs.find((s) => s.id === id);
   if (!song) notFound();
   const usedIn = store.plans.filter((plan) => plan.items.some((item) => item.songId === song.id));

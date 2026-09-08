@@ -25,7 +25,7 @@ export function OnboardingFlow({
   const [name, setName] = useState(orgName);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-6 sm:px-8">
+    <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-6 sm:px-8" data-brand="vestry">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <VestryMark />
         <p className="text-sm text-ink-soft">
