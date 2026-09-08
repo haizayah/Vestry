@@ -28,6 +28,7 @@ export const MODULE_CARDS: ModuleMeta[] = [
   { id: "events", label: "Events", description: "Games, rehearsals, one-offs & recurring" },
   { id: "worship", label: "Worship Planner", description: "Songs, setlists, in-app media", optional: true },
   { id: "chat", label: "Chat", description: "Team channel and plan or event threads", optional: true },
+  { id: "resources", label: "Resources & Rooms", description: "Rooms and gear, booked against events", optional: true },
 ];
 
 export const DEFAULT_CHURCH_MODULES: ModuleId[] = ["calendar", "people", "scheduling", "events", "worship"];
@@ -67,6 +68,7 @@ export function moduleSummary(modules: readonly ModuleId[]): string {
   if (hasModule(modules, "events")) labels.push("Events");
   if (hasModule(modules, "worship")) labels.push("Worship");
   if (hasModule(modules, "chat")) labels.push("Chat");
+  if (hasModule(modules, "resources")) labels.push("Resources");
   return labels.join(", ");
 }
 

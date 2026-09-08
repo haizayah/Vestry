@@ -32,6 +32,7 @@ export function visibleActivity(items: ActivityItem[], modules: readonly ModuleI
     if (item.kind === "chat") return hasModule(modules, "chat");
     if (item.kind === "plan") return hasModule(modules, "worship");
     if (item.kind === "event" || item.kind === "series") return hasModule(modules, "events");
+    if (item.kind === "booking") return hasModule(modules, "resources");
     return true;
   });
 }
@@ -44,4 +45,6 @@ export const ACTIVITY_LABELS: Record<ActivityKind, string> = {
   series: "Series",
   plan: "Plan",
   chat: "Chat",
+  booking: "Booking",
+  reminder: "Reminder",
 };

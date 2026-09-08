@@ -20,7 +20,8 @@ export default async function ActivityPage() {
       <h1 className="font-serif text-4xl tracking-tight text-wine-deep md:text-5xl">Activity</h1>
       <p className="mt-3 text-ink-soft">
         Lightweight feed — assignments, replies, new events or series
-        {hasModule(store.modules, "chat") ? ", and chat posts" : ""}.
+        {hasModule(store.modules, "chat") ? ", chat posts" : ""}
+        {hasModule(store.modules, "resources") ? ", and resource bookings" : ""}.
       </p>
       <div className="mt-8">
         <ActivityList items={items} empty="Nothing has happened in this room yet." />

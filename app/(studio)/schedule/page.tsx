@@ -4,10 +4,13 @@ import { redirect } from "next/navigation";
 import { AssignmentStatusChip } from "@/components/assignment-response";
 import { ConflictChip } from "@/components/conflict-chip";
 import { PendingRequests } from "@/components/pending-requests";
+import { ReminderChip } from "@/components/reminder-chip";
+import { ReminderToggle } from "@/components/reminder-toggle";
 import { getSession } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
 import { listLockoutsForConflictRead } from "@/lib/lockout-api";
 import { hasModule } from "@/lib/modules";
+import { assignmentNeedsReminder } from "@/lib/reminders";
 import { pendingRequestRows, scheduleRows } from "@/lib/schedule";
 import { readStore } from "@/lib/store";
 
@@ -105,7 +108,18 @@ export default async function SchedulePage() {
                       .join(" · ")}
                   />
                 ) : null}
+                {assignmentNeedsReminder(row.assignment.reminder, row.date, row.assignment.status) ? (
+                  <ReminderChip />
+                ) : null}
                 <AssignmentStatusChip status={row.assignment.status} />
+                {session.role === "director" || row.assignment.personId === person?.id ? (
+                  <ReminderToggle
+                    assignmentId={row.assignment.id}
+                    reminder={row.assignment.reminder}
+                    planId={row.planId}
+                    eventId={row.eventId}
+                  />
+                ) : null}
               </div>
             </li>
           ))}

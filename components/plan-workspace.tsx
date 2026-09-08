@@ -12,7 +12,10 @@ import {
   updatePlanMetaAction,
 } from "@/lib/actions";
 import { AssignmentResponse, AssignmentStatusChip } from "@/components/assignment-response";
+import { ReminderChip } from "@/components/reminder-chip";
+import { ReminderToggle } from "@/components/reminder-toggle";
 import { chatHref } from "@/lib/chat";
+import { assignmentNeedsReminder } from "@/lib/reminders";
 import { audioSrc, hasYouTube, resolveItem } from "@/lib/media";
 import { ITEM_LABELS, POSITIONS, type Person, type Plan, type PlanItemType, type PublicUser, type Song } from "@/lib/types";
 import { AudioUploader } from "./audio-uploader";
@@ -254,12 +257,16 @@ export function PlanWorkspace({
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-1">
                       {conflictTooltip ? <ConflictChip tooltip={conflictTooltip} /> : null}
+                      {assignmentNeedsReminder(assignment.reminder, plan.date, assignment.status) ? (
+                        <ReminderChip />
+                      ) : null}
                       <AssignmentStatusChip status={assignment.status} />
                     </div>
                   </div>
                   {mine || director ? (
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <AssignmentResponse assignmentId={assignment.id} status={assignment.status} planId={plan.id} />
+                      <ReminderToggle assignmentId={assignment.id} reminder={assignment.reminder} planId={plan.id} />
                       {director ? (
                         <form action={unassignPersonAction}>
                           <input type="hidden" name="planId" value={plan.id} />

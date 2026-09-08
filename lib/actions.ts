@@ -7,8 +7,9 @@ import { recordActivity } from "./activity";
 import { chatHref, threadTitle } from "./chat";
 import { hasModule, DEFAULT_CHURCH_MODULES, DEFAULT_SPORTS_MODULES, isOrgType, normalizeModules } from "./modules";
 import { parseRecurrenceFromForm } from "./recurrence";
+import { isResourceKind, parseBookingTarget, resolveBookingSlot } from "./resources";
 import { newId, readStore, resetStore, updateStore } from "./store";
-import type { AssignmentStatus, ChatThreadKind, Event, PlanItem, PlanItemType } from "./types";
+import type { Assignment, AssignmentStatus, ChatThreadKind, Event, PlanItem, PlanItemType } from "./types";
 
 function refreshApp() {
   revalidatePath("/", "layout");
@@ -172,6 +173,7 @@ export async function deletePlanAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   await updateStore((store) => {
     store.plans = store.plans.filter((p) => p.id !== id);
+    store.bookings = store.bookings.filter((booking) => booking.planId !== id);
   });
   refreshApp();
   redirect("/plans");
@@ -356,9 +358,22 @@ export async function addPersonAction(formData: FormData): Promise<void> {
 export async function updateChurchAction(formData: FormData): Promise<void> {
   await requireRole("director");
   const name = String(formData.get("churchName") || formData.get("orgName") || "").trim();
-  if (!name) return;
+  const logo = String(formData.get("logoFilename") || "");
   await updateStore((store) => {
-    store.churchName = name;
+    if (name) store.churchName = name;
+    if (formData.get("clearLogo") === "on") {
+      store.logoFilename = null;
+    } else if (logo) {
+      store.logoFilename = logo;
+    }
+  });
+  refreshApp();
+}
+
+export async function rotateIcalTokenAction(): Promise<void> {
+  await requireRole("director");
+  await updateStore((store) => {
+    store.icalToken = newId("ical");
   });
   refreshApp();
 }
@@ -460,6 +475,7 @@ export async function deleteEventAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   await updateStore((store) => {
     store.events = store.events.filter((entry) => entry.id !== id);
+    store.bookings = store.bookings.filter((booking) => booking.eventId !== id);
   });
   refreshApp();
   redirect("/events");
@@ -571,6 +587,127 @@ export async function postChatAction(formData: FormData) {
       summary: `${session.name} posted in ${title}`,
       href: chatHref({ kind: threadKind, planId, eventId }),
     });
+  });
+  refreshApp();
+}
+
+export async function createResourceAction(formData: FormData): Promise<void> {
+  await requireRole("director");
+  const name = String(formData.get("name") || "").trim();
+  const kindRaw = String(formData.get("kind") || "room");
+  if (!name || !isResourceKind(kindRaw)) return;
+  await updateStore((store) => {
+    if (!hasModule(store.modules, "resources")) throw new Error("Resources is off");
+    store.resources.push({
+      id: newId("res"),
+      name,
+      kind: kindRaw,
+      notes: String(formData.get("notes") || "").trim(),
+    });
+    store.resources.sort((a, b) => a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name));
+  });
+  refreshApp();
+}
+
+export async function deleteResourceAction(formData: FormData): Promise<void> {
+  await requireRole("director");
+  const id = String(formData.get("id") || "");
+  await updateStore((store) => {
+    store.resources = store.resources.filter((resource) => resource.id !== id);
+    store.bookings = store.bookings.filter((booking) => booking.resourceId !== id);
+  });
+  refreshApp();
+}
+
+export async function bookResourceAction(formData: FormData): Promise<void> {
+  const director = await requireRole("director");
+  const resourceId = String(formData.get("resourceId") || "");
+  const notes = String(formData.get("notes") || "").trim();
+  const target = parseBookingTarget(String(formData.get("target") || ""));
+  if (!resourceId || !target) return;
+
+  await updateStore((store) => {
+    if (!hasModule(store.modules, "resources")) throw new Error("Resources is off");
+    const resource = store.resources.find((entry) => entry.id === resourceId);
+    if (!resource) throw new Error("Resource not found");
+    const slot = resolveBookingSlot(store, target);
+    if (!slot) throw new Error("Slot not found");
+    // Warn-only: a double-book on the same date never rejects this write.
+    const booking = {
+      id: newId("book"),
+      resourceId,
+      eventId: slot.event?.id,
+      planId: slot.plan?.id,
+      date: slot.date,
+      notes,
+      createdAt: new Date().toISOString(),
+    };
+    store.bookings.push(booking);
+    const title = slot.plan?.name ?? slot.event?.title ?? "a slot";
+    recordActivity(store, {
+      kind: "booking",
+      actorUserId: director.id,
+      actorName: director.name,
+      summary: `${director.name} booked ${resource.name} for ${title}`,
+      href: slot.plan ? `/plans/${slot.plan.id}` : `/events/${slot.event?.id}`,
+    });
+  });
+  refreshApp();
+}
+
+export async function unbookResourceAction(formData: FormData): Promise<void> {
+  await requireRole("director");
+  const id = String(formData.get("id") || "");
+  await updateStore((store) => {
+    store.bookings = store.bookings.filter((booking) => booking.id !== id);
+  });
+  refreshApp();
+}
+
+function findAssignment(
+  store: { plans: { id: string; assignments: Assignment[] }[]; events: { id: string; assignments: Assignment[] }[] },
+  planId: string,
+  eventId: string,
+  assignmentId: string,
+): Assignment | undefined {
+  if (planId) {
+    return store.plans.find((plan) => plan.id === planId)?.assignments.find((row) => row.id === assignmentId);
+  }
+  if (eventId) {
+    return store.events.find((event) => event.id === eventId)?.assignments.find((row) => row.id === assignmentId);
+  }
+  return undefined;
+}
+
+export async function toggleReminderAction(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  const planId = String(formData.get("planId") || "");
+  const eventId = String(formData.get("eventId") || "");
+  const assignmentId = String(formData.get("assignmentId") || "");
+  const next = String(formData.get("reminder") || "") === "on";
+
+  await updateStore((store) => {
+    const person = store.people.find((entry) => entry.userId === session.id);
+    const assignment = findAssignment(store, planId, eventId, assignmentId);
+    if (!assignment) throw new Error("Assignment not found");
+    if (session.role !== "director" && assignment.personId !== person?.id) {
+      throw new Error("Forbidden");
+    }
+    assignment.reminder = next;
+    const host = planId
+      ? store.plans.find((plan) => plan.id === planId)
+      : store.events.find((event) => event.id === eventId);
+    const assigned = store.people.find((entry) => entry.id === assignment.personId);
+    const title = host && "name" in host ? host.name : host && "title" in host ? host.title : "an assignment";
+    if (next) {
+      recordActivity(store, {
+        kind: "reminder",
+        actorUserId: session.id,
+        actorName: session.name,
+        summary: `${session.name} flagged a reminder for ${assigned?.name ?? "someone"} on ${title}`,
+        href: planId ? `/plans/${planId}` : `/events/${eventId}`,
+      });
+    }
   });
   refreshApp();
 }

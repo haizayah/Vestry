@@ -32,8 +32,20 @@ function normalizeStore(data: StoreData): StoreData {
   if (!Array.isArray(data.activity)) {
     data.activity = [];
   }
+  if (!Array.isArray(data.resources)) {
+    data.resources = [];
+  }
+  if (!Array.isArray(data.bookings)) {
+    data.bookings = [];
+  }
   if (!data.orgType) {
     data.orgType = "church";
+  }
+  if (data.logoFilename === undefined) {
+    data.logoFilename = null;
+  }
+  if (!data.icalToken) {
+    data.icalToken = "harbor-demo-ical";
   }
   data.modules = normalizeModules(data.modules);
   return data;

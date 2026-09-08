@@ -4,12 +4,17 @@ import { notFound, redirect } from "next/navigation";
 import { assignEventPersonAction, deleteEventAction, unassignEventPersonAction } from "@/lib/actions";
 import { AssignmentResponse, AssignmentStatusChip } from "@/components/assignment-response";
 import { ConflictChip } from "@/components/conflict-chip";
+import { ReminderChip } from "@/components/reminder-chip";
+import { ReminderToggle } from "@/components/reminder-toggle";
+import { BookResourceForm, ResourceBookingList } from "@/components/resource-bookings";
 import { chatHref } from "@/lib/chat";
 import { getSession } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
 import { computeEventAssignmentConflicts } from "@/lib/lockout-api";
 import { hasModule, positionsFor } from "@/lib/modules";
 import { expandOccurrences, recurrenceSummary } from "@/lib/recurrence";
+import { assignmentNeedsReminder } from "@/lib/reminders";
+import { bookableSlots, bookingsForTarget } from "@/lib/resources";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Event" };
@@ -28,6 +33,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const occurrences = expandOccurrences(event);
   const conflicts = await computeEventAssignmentConflicts(event.id, event.date);
   const seats = positionsFor(store.orgType, store.modules);
+  const resourcesOn = hasModule(store.modules, "resources");
+  const eventBookings = bookingsForTarget(store.bookings, { eventId: event.id });
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -91,6 +98,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {tooltip ? <ConflictChip tooltip={tooltip} /> : null}
+                    {assignmentNeedsReminder(assignment.reminder, event.date, assignment.status) ? <ReminderChip /> : null}
                     <AssignmentStatusChip status={assignment.status} />
                   </div>
                 </div>
@@ -99,6 +107,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                     <AssignmentResponse
                       assignmentId={assignment.id}
                       status={assignment.status}
+                      eventId={event.id}
+                    />
+                    <ReminderToggle
+                      assignmentId={assignment.id}
+                      reminder={assignment.reminder}
                       eventId={event.id}
                     />
                     {director ? (
@@ -141,6 +154,30 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           </form>
         ) : null}
       </section>
+
+      {resourcesOn ? (
+        <section className="mt-10 space-y-4">
+          <p className="field-label">Resources</p>
+          <h2 className="font-serif text-2xl text-wine-deep">Rooms & gear</h2>
+          <ResourceBookingList
+            resources={store.resources}
+            bookings={eventBookings}
+            allBookings={store.bookings}
+            events={store.events}
+            plans={store.plans}
+            director={director}
+          />
+          {director ? (
+            <div className="paper-card space-y-3 rounded-3xl p-5">
+              <p className="field-label">Book an occurrence</p>
+              <BookResourceForm
+                resources={store.resources}
+                slots={bookableSlots({ events: [event], plans: [], modules: store.modules }, false)}
+              />
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

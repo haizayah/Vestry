@@ -8,6 +8,7 @@ import { roleLabel } from "@/lib/modules";
 import { desktopPrimaryNav, dockItems, moreItems } from "@/lib/nav";
 import type { ModuleId, OrgType, PublicUser } from "@/lib/types";
 import { DockIcon, MoreIcon } from "./nav-icons";
+import { audioSrc } from "@/lib/media";
 import { VestryMark } from "./mark";
 
 function isActive(pathname: string, href: string) {
@@ -20,14 +21,17 @@ export function AppShell({
   orgName,
   orgType,
   modules,
+  logoFilename,
   children,
 }: {
   user: PublicUser;
   orgName: string;
   orgType: OrgType;
   modules: ModuleId[];
+  logoFilename?: string | null;
   children: React.ReactNode;
 }) {
+  const logoSrc = audioSrc(logoFilename);
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const primary = desktopPrimaryNav(modules);
@@ -39,7 +43,11 @@ export function AppShell({
     <div className="min-h-full bg-paper">
       <div className="mx-auto flex min-h-screen max-w-[1440px]">
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-wine-deep px-5 py-6 text-on-deep md:flex">
-          <Link href="/home" className="mb-10">
+          <Link href="/home" className="mb-10 flex items-center gap-3">
+            {logoSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoSrc} alt="" className="h-10 w-10 rounded-xl object-cover ring-1 ring-gold/40" />
+            ) : null}
             <VestryMark tone="on-deep" />
           </Link>
           <nav className="flex flex-1 flex-col gap-1">
@@ -94,7 +102,11 @@ export function AppShell({
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-paper/90 px-4 py-3 backdrop-blur md:hidden">
-            <Link href="/home">
+            <Link href="/home" className="flex items-center gap-2.5">
+              {logoSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoSrc} alt="" className="h-8 w-8 rounded-lg object-cover ring-1 ring-gold/40" />
+              ) : null}
               <VestryMark />
             </Link>
             <span className="text-[0.7rem] uppercase tracking-[0.14em] text-muted">{orgType}</span>

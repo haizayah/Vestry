@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
-import { applyOrgPresetAction, logoutAction, resetDemoAction, updateChurchAction } from "@/lib/actions";
+import { IcalSubscribe } from "@/components/ical-subscribe";
+import { LogoUploader } from "@/components/logo-uploader";
+import { applyOrgPresetAction, logoutAction, resetDemoAction, rotateIcalTokenAction, updateChurchAction } from "@/lib/actions";
 import { visibleActivity } from "@/lib/activity";
 import { getSession } from "@/lib/auth";
+import { icalFeedPath } from "@/lib/ical";
 import { hasModule, moduleSummary, ORG_TYPE_LABELS, roleLabel } from "@/lib/modules";
+import { requestOrigin } from "@/lib/origin";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -14,6 +18,7 @@ export default async function SettingsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
+  const feedUrl = `${await requestOrigin()}${icalFeedPath(store.icalToken)}`;
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -62,16 +67,17 @@ export default async function SettingsPage() {
             <p className="text-sm text-ink-soft">
               {ORG_TYPE_LABELS[store.orgType]} · {moduleSummary(store.modules)}
             </p>
+            <LogoUploader initialFilename={store.logoFilename} />
             <button className="btn btn-ghost" type="submit">
-              Save org name
+              Save org
             </button>
           </form>
 
           <section className="paper-card space-y-3 rounded-3xl p-6">
             <p className="field-label">Modules</p>
             <p className="text-ink-soft">
-              Toggle hides nav and routes. Songs, plans, events, and chat stay saved. Worship and Chat are optional —
-              Calendar and People stay on.
+              Toggle hides nav and routes. Songs, plans, events, chat, and rooms stay saved. Worship, Chat, and
+              Resources are optional — Calendar and People stay on.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/settings/modules" className="btn btn-primary">
@@ -101,9 +107,25 @@ export default async function SettingsPage() {
             {hasModule(store.modules, "chat") ? null : (
               <p className="text-sm text-muted">Chat is off — the channel stays hidden until you enable it.</p>
             )}
+            {hasModule(store.modules, "resources") ? null : (
+              <p className="text-sm text-muted">Resources is off — rooms and gear stay hidden until you enable it.</p>
+            )}
           </section>
         </>
       ) : null}
+
+      <section className="paper-card space-y-4 rounded-3xl p-6">
+        <p className="field-label">Calendar</p>
+        <h2 className="font-serif text-2xl text-wine-deep">iCal subscribe</h2>
+        <IcalSubscribe url={feedUrl} />
+        {session.role === "director" ? (
+          <form action={rotateIcalTokenAction}>
+            <button className="btn btn-ghost" type="submit">
+              Rotate feed link
+            </button>
+          </form>
+        ) : null}
+      </section>
 
       <section className="paper-card space-y-3 rounded-3xl p-6">
         <p className="field-label">Demo</p>

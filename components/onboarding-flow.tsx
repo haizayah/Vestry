@@ -87,7 +87,7 @@ export function OnboardingFlow({
             <ModulePicker orgName={name || orgName} orgType={orgType} modules={modules} />
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-3 pb-8">
-            <p className="text-sm text-muted">Chat is optional and off by default. Resources stay later.</p>
+            <p className="text-sm text-muted">Chat and Resources are optional and off by default.</p>
             <div className="flex gap-3">
               <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>
                 Back

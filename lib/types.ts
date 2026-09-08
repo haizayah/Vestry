@@ -13,8 +13,28 @@ export type PublicUser = Omit<User, "password">;
 export const ORG_TYPES = ["church", "sports", "nonprofit", "creative", "ops", "other"] as const;
 export type OrgType = (typeof ORG_TYPES)[number];
 
-export const MODULE_IDS = ["calendar", "people", "scheduling", "events", "worship", "chat"] as const;
+export const MODULE_IDS = ["calendar", "people", "scheduling", "events", "worship", "chat", "resources"] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
+
+export const RESOURCE_KINDS = ["room", "gear"] as const;
+export type ResourceKind = (typeof RESOURCE_KINDS)[number];
+
+export type Resource = {
+  id: string;
+  name: string;
+  kind: ResourceKind;
+  notes: string;
+};
+
+export type ResourceBooking = {
+  id: string;
+  resourceId: string;
+  eventId?: string;
+  planId?: string;
+  date: string;
+  notes: string;
+  createdAt: string;
+};
 
 export type Song = {
   id: string;
@@ -54,6 +74,7 @@ export type Assignment = {
   personId: string;
   position: string;
   status: AssignmentStatus;
+  reminder?: boolean;
 };
 
 export type Plan = {
@@ -120,7 +141,16 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export type ActivityKind = "assigned" | "accepted" | "declined" | "event" | "series" | "plan" | "chat";
+export type ActivityKind =
+  | "assigned"
+  | "accepted"
+  | "declined"
+  | "event"
+  | "series"
+  | "plan"
+  | "chat"
+  | "booking"
+  | "reminder";
 
 export type ActivityItem = {
   id: string;
@@ -136,6 +166,8 @@ export type StoreData = {
   churchName: string;
   orgType: OrgType;
   modules: ModuleId[];
+  logoFilename: string | null;
+  icalToken: string;
   users: User[];
   people: Person[];
   songs: Song[];
@@ -144,6 +176,8 @@ export type StoreData = {
   lockouts: Lockout[];
   messages: ChatMessage[];
   activity: ActivityItem[];
+  resources: Resource[];
+  bookings: ResourceBooking[];
 };
 
 export const POSITIONS = [

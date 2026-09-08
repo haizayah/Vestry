@@ -9,6 +9,8 @@ export function createSeed(): StoreData {
     churchName: "Harbor Church",
     orgType: "church",
     modules: ["calendar", "people", "scheduling", "events", "worship"],
+    logoFilename: null,
+    icalToken: "harbor-demo-ical",
     users: [
       {
         id: "user-elena",
@@ -277,7 +279,7 @@ export function createSeed(): StoreData {
         ],
         assignments: [
           { id: "as-13-elena", personId: "person-elena", position: "Worship Leader", status: "accepted" },
-          { id: "as-13-jordan", personId: "person-jordan", position: "Vocals", status: "pending" },
+          { id: "as-13-jordan", personId: "person-jordan", position: "Vocals", status: "pending", reminder: true },
           { id: "as-13-micah", personId: "person-micah", position: "Acoustic Guitar", status: "accepted" },
           { id: "as-13-priya", personId: "person-priya", position: "Keys", status: "accepted" },
           { id: "as-13-sam", personId: "person-sam", position: "Drums", status: "declined" },
@@ -339,7 +341,7 @@ export function createSeed(): StoreData {
           { id: "as-20-elena", personId: "person-elena", position: "Worship Leader", status: "accepted" },
           { id: "as-20-jordan", personId: "person-jordan", position: "Vocals", status: "accepted" },
           { id: "as-20-naomi", personId: "person-naomi", position: "Vocals", status: "accepted" },
-          { id: "as-20-micah", personId: "person-micah", position: "Acoustic Guitar", status: "pending" },
+          { id: "as-20-micah", personId: "person-micah", position: "Acoustic Guitar", status: "pending", reminder: true },
           { id: "as-20-priya", personId: "person-priya", position: "Keys", status: "accepted" },
         ],
       },
@@ -368,6 +370,44 @@ export function createSeed(): StoreData {
           { id: "as-evt-naomi", personId: "person-naomi", position: "Forward", status: "accepted" },
           { id: "as-evt-caleb", personId: "person-caleb", position: "Goalkeeper", status: "accepted" },
         ],
+      },
+    ],
+    resources: [
+      {
+        id: "res-sanctuary",
+        name: "Sanctuary",
+        kind: "room",
+        notes: "Main room. Holds the Sunday band and the first three rows of chairs.",
+      },
+      {
+        id: "res-fellowship",
+        name: "Fellowship Hall",
+        kind: "room",
+        notes: "Overflow, meals, and Saturday meetups.",
+      },
+      {
+        id: "res-wireless",
+        name: "Wireless pack A",
+        kind: "gear",
+        notes: "Handheld + belt pack. Charge Thursday.",
+      },
+    ],
+    bookings: [
+      {
+        id: "book-sanctuary-13",
+        resourceId: "res-sanctuary",
+        planId: "plan-sep-13",
+        date: "2026-09-13",
+        notes: "Sunday Gathering",
+        createdAt: now,
+      },
+      {
+        id: "book-sanctuary-league",
+        resourceId: "res-sanctuary",
+        eventId: "event-league-sat",
+        date: "2026-09-13",
+        notes: "Same morning as the gathering — warn-only overlap.",
+        createdAt: now,
       },
     ],
     lockouts: [
@@ -425,6 +465,24 @@ export function createSeed(): StoreData {
         actorName: "Elena Ward",
         summary: "Elena Ward assigned Jordan Ellis as Captain on Saturday League Match",
         href: "/events/event-league-sat",
+      },
+      {
+        id: "act-booking-sanctuary",
+        kind: "booking",
+        createdAt: "2026-09-06T14:40:00.000Z",
+        actorUserId: "user-elena",
+        actorName: "Elena Ward",
+        summary: "Elena Ward booked Sanctuary for Sunday Gathering",
+        href: "/plans/plan-sep-13",
+      },
+      {
+        id: "act-reminder-jordan",
+        kind: "reminder",
+        createdAt: "2026-09-06T14:30:00.000Z",
+        actorUserId: "user-elena",
+        actorName: "Elena Ward",
+        summary: "Elena Ward flagged a reminder for Jordan Ellis on Sunday Gathering",
+        href: "/plans/plan-sep-13",
       },
       {
         id: "act-assign-jordan-plan",

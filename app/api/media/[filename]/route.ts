@@ -7,6 +7,11 @@ const TYPES: Record<string, string> = {
   ".mp3": "audio/mpeg",
   ".m4a": "audio/mp4",
   ".wav": "audio/wav",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
 };
 
 export const runtime = "nodejs";

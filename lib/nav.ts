@@ -15,6 +15,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { href: "/schedule", label: "Schedule", module: "scheduling" },
   { href: "/events", label: "Events", module: "events" },
   { href: "/chat", label: "Chat", module: "chat" },
+  { href: "/resources", label: "Resources", module: "resources" },
   { href: "/plans", label: "Plans", module: "worship" },
   { href: "/songs", label: "Songs", module: "worship" },
 ];
@@ -31,6 +32,7 @@ export function moreItems(modules: readonly ModuleId[]): NavItem[] {
   const extras: NavItem[] = [];
   if (hasModule(modules, "events")) extras.push({ href: "/events", label: "Events", moreMeta: "On" });
   if (hasModule(modules, "chat")) extras.push({ href: "/chat", label: "Chat", moreMeta: "On" });
+  if (hasModule(modules, "resources")) extras.push({ href: "/resources", label: "Resources", moreMeta: "On" });
   if (hasModule(modules, "worship")) {
     extras.push({ href: "/plans", label: "Plans", moreMeta: "Worship" });
     extras.push({ href: "/songs", label: "Songs", moreMeta: "Worship" });

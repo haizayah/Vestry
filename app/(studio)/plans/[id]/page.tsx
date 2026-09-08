@@ -7,8 +7,10 @@ import { mediaReadyCount } from "@/lib/media";
 import { requireModule } from "@/lib/guards";
 import { hasModule } from "@/lib/modules";
 import { readStore } from "@/lib/store";
+import { BookResourceForm, ResourceBookingList } from "@/components/resource-bookings";
 import { PlanWorkspace } from "@/components/plan-workspace";
 import { computeAssignmentConflicts } from "@/lib/lockout-api";
+import { bookingsForTarget } from "@/lib/resources";
 
 export const metadata: Metadata = { title: "Plan" };
 
@@ -49,6 +51,30 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         assignmentConflicts={await computeAssignmentConflicts(plan.id)}
         chatOn={hasModule(store.modules, "chat")}
       />
+      {hasModule(store.modules, "resources") ? (
+        <section className="mt-10 space-y-4">
+          <p className="field-label">Resources</p>
+          <h2 className="font-serif text-2xl text-wine-deep">Rooms & gear</h2>
+          <ResourceBookingList
+            resources={store.resources}
+            bookings={bookingsForTarget(store.bookings, { planId: plan.id })}
+            allBookings={store.bookings}
+            events={store.events}
+            plans={store.plans}
+            director={session.role === "director"}
+          />
+          {session.role === "director" ? (
+            <div className="paper-card space-y-3 rounded-3xl p-5">
+              <p className="field-label">Book this plan</p>
+              <BookResourceForm
+                resources={store.resources}
+                slots={[]}
+                presetTarget={`plan:${plan.id}:${plan.date}`}
+              />
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

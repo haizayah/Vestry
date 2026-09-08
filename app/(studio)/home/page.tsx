@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { ActivityList } from "@/components/activity-list";
 import { ConflictChip } from "@/components/conflict-chip";
 import { PendingRequests } from "@/components/pending-requests";
+import { ReminderChip } from "@/components/reminder-chip";
+import { ReminderToggle } from "@/components/reminder-toggle";
 import { visibleActivity } from "@/lib/activity";
 import { getSession } from "@/lib/auth";
 import { firstName, formatShortDate, isUpcoming, timeGreeting, todayISO } from "@/lib/format";
@@ -12,7 +14,8 @@ import { conflictsForAssignments } from "@/lib/lockouts";
 import { mediaReadyCount } from "@/lib/media";
 import { hasModule, moduleSummary, ORG_TYPE_LABELS } from "@/lib/modules";
 import { nextOccurrence } from "@/lib/recurrence";
-import { pendingRequestRows } from "@/lib/schedule";
+import { reminderRows } from "@/lib/reminders";
+import { pendingRequestRows, scheduleRows } from "@/lib/schedule";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Home" };
@@ -38,15 +41,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       .filter((assignment) => assignment.personId === person?.id)
       .map((assignment) => ({ plan, assignment })),
   );
-  const pending = pendingRequestRows({
+  const listArgs = {
     events: eventsOn ? store.events : [],
     plans: store.plans,
     people: store.people,
     lockouts,
     includePlans: worshipOn,
+  };
+  const pending = pendingRequestRows({
+    ...listArgs,
     personId: person?.id,
     onlyMine: session.role !== "director",
   });
+  const reminders = reminderRows(scheduleRows(listArgs)).filter((row) =>
+    session.role === "director" ? true : row.assignment.personId === person?.id,
+  );
   const nextEvent = upcomingEvents[0];
   const nextEventConflicts = nextEvent
     ? conflictsForAssignments(nextEvent.assignments, nextEvent.date, lockouts, store.people)
@@ -72,7 +81,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             Upcoming
           </Link>
           <Link href="/home?tab=attention" className={`chip ${tab === "attention" ? "chip-active" : ""}`}>
-            Needs attention{awaitingCount ? ` · ${awaitingCount}` : ""}
+            Needs attention{awaitingCount || reminders.length ? ` · ${awaitingCount + reminders.length}` : ""}
           </Link>
         </div>
         {session.role === "director" ? (
@@ -93,6 +102,41 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               empty="No pending assignments right now."
             />
           ) : null}
+
+          <section>
+            <p className="field-label">In-app</p>
+            <h2 className="font-serif text-3xl tracking-tight text-wine-deep">Reminders</h2>
+            <p className="mt-2 text-ink-soft">Email-less flags on upcoming assignments. No push, no inbox.</p>
+            {reminders.length === 0 ? (
+              <p className="mt-4 text-ink-soft">No reminder flags in the next two weeks.</p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {reminders.map((row) => (
+                  <li key={`remind-${row.key}`} className="paper-card rounded-3xl px-5 py-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <Link href={row.href} className="font-serif text-xl text-wine-deep underline-offset-4 hover:underline">
+                          {row.title}
+                        </Link>
+                        <p className="mt-1 text-sm text-muted">
+                          {row.personName} · {row.assignment.position} · {formatShortDate(row.date)} · {row.time}
+                        </p>
+                      </div>
+                      <ReminderChip />
+                    </div>
+                    <div className="mt-3">
+                      <ReminderToggle
+                        assignmentId={row.assignment.id}
+                        reminder={row.assignment.reminder}
+                        planId={row.planId}
+                        eventId={row.eventId}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           <article className="paper-card rounded-3xl p-6">
             <p className="text-[0.68rem] uppercase tracking-[0.16em] text-gold">Needs attention</p>

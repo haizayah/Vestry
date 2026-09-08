@@ -12,7 +12,7 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 
 - Marketing landing at `/`
 - Demo auth with persisted session (director + member)
-- Org type + modules (Calendar and People always on; Worship optional). Directors toggle in Settings → Modules
+- Org type + modules (Calendar and People always on; Worship, Chat, and Resources optional). Directors toggle in Settings → Modules
 - Module-aware shell: desktop sidebar + mobile dock / More. Plans and Songs hide when Worship is off (data stays)
 - Calendar month and week shells, plus member blockouts and warn-only assignment conflicts
 - Events with recurring create (weekly / biweekly / monthly). Occurrences expand server-side
@@ -22,12 +22,16 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 - Song library CRUD and service plans when Worship is on
 - YouTube and uploaded audio play **in-app** on song and plan pages
 - Optional Chat (off by default): team channel plus a thread per plan or event
+- Optional Resources (off by default): rooms and gear booked against an event or occurrence — warn-only if double-booked
+- iCal subscribe link for the org calendar (events + plans when Worship is on)
+- Org display name and optional logo (sidebar / mark only; accent stays wine)
 - Schedule requests: director assigns, members Accept / Decline; pending on Schedule and Home → Needs attention
-- Activity feed on Home and Settings for assignments, replies, new events/series, and chat posts
+- Light in-app reminder flags on upcoming assignments (Home → Needs attention). No email or push
+- Activity feed on Home and Settings for assignments, replies, new events/series, chat posts, and bookings
 
 **Out of scope**
 
-Resources, Giving, Check-ins, branding, iCal, leads depth, auto-scheduler, CCLI, native apps, Spotify/Apple Music APIs.
+Giving, Check-ins, multi-org, native push, auto-scheduler, CCLI, native apps, Spotify/Apple Music APIs.
 
 ## Stack
 
@@ -89,10 +93,12 @@ Directors can restore Harbor Church from **Settings → Reset demo data**.
 2. Settings → Modules (or `/onboarding`) to pick org type and modules. Use **Harbor FC (Sports)** to hide Worship.
 3. Create a plan when Worship is on, or a recurring event from Calendar when Events is on.
 4. Add songs from the library when Worship is on. Upload rehearsal audio — it plays on the song page and anywhere that song is on a setlist.
-5. Assign people to positions on a plan or event. Members Accept or Decline from Schedule or Home → Needs attention.
+5. Assign people to positions on a plan or event. Members Accept or Decline from Schedule or Home → Needs attention. Flag a reminder on an upcoming assignment if you want it on Home → Needs attention.
 6. Sign out, enter as **member**, accept/decline, and rehearse in-app when Worship is on.
 7. Members add or delete their own blockouts under **Settings → Availability**. Directors see gold Conflict chips on overlapping assignments — save is never blocked, including recurring occurrences.
 8. Turn on Chat in Settings → Modules for a team channel and per-plan or per-event threads. Activity on Home logs the lightweight trail.
+9. Turn on Resources for rooms and gear. Book against an event or Sunday — a second booking on the same date warns, it never blocks.
+10. Subscribe to the org calendar from Settings or Calendar. Upload an optional logo in Settings — it lands in the sidebar mark only.
 
 ## Project layout
 
