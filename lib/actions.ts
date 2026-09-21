@@ -7,9 +7,20 @@ import { recordActivity } from "./activity";
 import { chatHref, threadTitle } from "./chat";
 import { hasModule, DEFAULT_CHURCH_MODULES, DEFAULT_SPORTS_MODULES, isOrgType, normalizeModules } from "./modules";
 import { parseRecurrenceFromForm } from "./recurrence";
+import { postLoginPath } from "./onboarding";
 import { isResourceKind, parseBookingTarget, resolveBookingSlot } from "./resources";
 import { newId, readStore, resetStore, updateStore } from "./store";
-import type { Assignment, AssignmentStatus, ChatThreadKind, Event, PlanItem, PlanItemType } from "./types";
+import type { Assignment, AssignmentStatus, ChatThreadKind, Event, PlanItem, PlanItemType, StoreData } from "./types";
+
+function applyOrgForm(store: StoreData, formData: FormData) {
+  const name = String(formData.get("churchName") || formData.get("orgName") || "").trim();
+  const orgTypeRaw = String(formData.get("orgType") || "");
+  const modules = formData.getAll("modules").map(String);
+  if (name) store.churchName = name;
+  if (isOrgType(orgTypeRaw)) store.orgType = orgTypeRaw;
+  store.modules = normalizeModules(modules);
+  // Toggle hides nav/routes only — songs, plans, and events stay on disk.
+}
 
 function refreshApp() {
   revalidatePath("/", "layout");
@@ -26,7 +37,7 @@ export async function loginAction(formData: FormData) {
     return { error: "Those credentials aren’t in the vestry." };
   }
   await setSessionCookie(toPublicUser(user));
-  redirect("/home");
+  redirect(postLoginPath(user.role, store.onboardingCompletedAt));
 }
 
 export async function demoLoginAction(email: string): Promise<void> {
@@ -34,7 +45,7 @@ export async function demoLoginAction(email: string): Promise<void> {
   const user = store.users.find((u) => u.email === email);
   if (!user) return;
   await setSessionCookie(toPublicUser(user));
-  redirect("/home");
+  redirect(postLoginPath(user.role, store.onboardingCompletedAt));
 }
 
 export async function demoDirectorLoginAction(): Promise<void> {
@@ -54,6 +65,7 @@ export async function resetDemoAction() {
   await requireRole("director");
   await resetStore();
   refreshApp();
+  redirect("/onboarding");
 }
 
 export async function createSongAction(formData: FormData): Promise<void> {
@@ -383,20 +395,19 @@ export async function rotateIcalTokenAction(): Promise<void> {
 
 export async function updateOrgAction(formData: FormData): Promise<void> {
   await requireRole("director");
-  const name = String(formData.get("churchName") || formData.get("orgName") || "").trim();
-  const orgTypeRaw = String(formData.get("orgType") || "");
-  const modules = formData.getAll("modules").map(String);
   await updateStore((store) => {
-    if (name) store.churchName = name;
-    if (isOrgType(orgTypeRaw)) store.orgType = orgTypeRaw;
-    store.modules = normalizeModules(modules);
-    // Toggle hides nav/routes only — songs, plans, and events stay on disk.
+    applyOrgForm(store, formData);
   });
   refreshApp();
 }
 
 export async function completeOnboardingAction(formData: FormData): Promise<void> {
-  await updateOrgAction(formData);
+  await requireRole("director");
+  await updateStore((store) => {
+    applyOrgForm(store, formData);
+    store.onboardingCompletedAt = new Date().toISOString();
+  });
+  refreshApp();
   redirect("/home");
 }
 

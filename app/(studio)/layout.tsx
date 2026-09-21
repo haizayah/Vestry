@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { getSession } from "@/lib/auth";
+import { directorNeedsOnboarding } from "@/lib/onboarding";
 import { readStore } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,9 @@ export default async function StudioLayout({ children }: { children: React.React
   const session = await getSession();
   if (!session) redirect("/login");
   const store = await readStore();
+  if (directorNeedsOnboarding(session.role, store.onboardingCompletedAt)) {
+    redirect("/onboarding");
+  }
 
   return (
     <AppShell

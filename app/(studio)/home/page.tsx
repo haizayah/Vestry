@@ -11,7 +11,7 @@ import { visibleActivity } from "@/lib/activity";
 import { getSession } from "@/lib/auth";
 import { firstName, formatShortDate, timeGreeting } from "@/lib/format";
 import { listLockoutsForConflictRead } from "@/lib/lockout-api";
-import { enabledModuleChips, hasModule, ORG_TYPE_LABELS } from "@/lib/modules";
+import { hasModule, optionalHomeChips, ORG_TYPE_LABELS } from "@/lib/modules";
 import { reminderRows } from "@/lib/reminders";
 import { nextDaysPeek, pendingRequestRows, scheduleRows } from "@/lib/schedule";
 import { readStore } from "@/lib/store";
@@ -61,8 +61,7 @@ export default async function HomePage() {
   const feed = visibleActivity(store.activity, store.modules).slice(0, 8);
   const awaitingCount = pending.length;
   const needsCount = pending.length + uniqueConflicts.length + reminders.length;
-  const quickCreateHref = worshipOn ? "/plans/new" : eventsOn ? "/calendar?new=event" : null;
-  const chips = enabledModuleChips(store.modules);
+  const chips = optionalHomeChips(store.modules);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -74,18 +73,29 @@ export default async function HomePage() {
           <p className="mt-3 text-ink-soft">
             {store.churchName} · {ORG_TYPE_LABELS[store.orgType]}
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {chips.map((chip) => (
-              <span key={chip.id} className="chip chip-active">
-                {chip.label}
-              </span>
-            ))}
-          </div>
+          {chips.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {chips.map((chip) => (
+                <span key={chip.id} className="chip">
+                  {chip.label}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
-        {session.role === "director" && quickCreateHref ? (
-          <Link href={quickCreateHref} className="btn btn-primary">
-            Quick create
-          </Link>
+        {session.role === "director" && (eventsOn || worshipOn) ? (
+          <div className="flex flex-wrap gap-2">
+            {eventsOn ? (
+              <Link href="/calendar?new=event" className="btn btn-primary">
+                New event
+              </Link>
+            ) : null}
+            {worshipOn ? (
+              <Link href="/plans/new" className={eventsOn ? "btn btn-ghost" : "btn btn-primary"}>
+                New plan
+              </Link>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
@@ -176,15 +186,7 @@ export default async function HomePage() {
         <article className="paper-card rounded-3xl p-6">
           <p className="field-label">This week</p>
           <p className="font-serif text-4xl tracking-tight">{peek.length}</p>
-          <p className="mt-2 text-sm text-muted">
-            {worshipOn && eventsOn
-              ? "Plans and events in the next 7 days"
-              : worshipOn
-                ? "Plans in the next 7 days"
-                : eventsOn
-                  ? "Events in the next 7 days"
-                  : "Nothing module-backed this week"}
-          </p>
+          <p className="mt-2 text-sm text-muted">In the next 7 days</p>
         </article>
         <article className="paper-card rounded-3xl p-6">
           <p className="field-label">{session.role === "director" ? "Awaiting replies" : "Your pending"}</p>
@@ -217,17 +219,7 @@ export default async function HomePage() {
                   />
                 ) : null}
               </div>
-              {item.kind === "plan" && worshipOn ? (
-                <p className="mt-1 text-sm text-ink-soft">
-                  {item.itemCount} {item.itemCount === 1 ? "item" : "items"} in the order
-                </p>
-              ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
-                {item.kind === "plan" && worshipOn && item.media ? (
-                  <span className="chip">
-                    Media {item.media.ready}/{item.media.total || 0}
-                  </span>
-                ) : null}
                 <span className="chip">
                   Assigned {item.assignedAccepted}/{item.assignedTotal}
                 </span>
@@ -237,7 +229,12 @@ export default async function HomePage() {
             </Link>
           ))}
           {peek.length === 0 ? (
-            <div className="paper-card rounded-3xl p-8 text-muted">Nothing scheduled in the next 7 days.</div>
+            <div className="paper-card rounded-3xl p-8">
+              <p className="text-muted">Nothing on the calendar this week.</p>
+              <Link href="/calendar" className="mt-3 inline-block text-sm text-accent underline-offset-4 hover:underline">
+                Open Calendar
+              </Link>
+            </div>
           ) : null}
         </div>
       </section>
@@ -253,7 +250,7 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="mt-4">
-          <ActivityList items={feed} empty="Nothing new yet. Assignments, replies, and new events will land here." />
+          <ActivityList items={feed} empty="Assignments, replies, and schedule changes land here." />
         </div>
       </section>
     </div>
