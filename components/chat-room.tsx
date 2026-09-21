@@ -22,7 +22,7 @@ export function ChatRoom({
     <div className="mx-auto max-w-5xl">
       <h1 className="font-serif text-4xl tracking-tight text-wine-deep md:text-5xl">Chat</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
-        Team channel plus a thread per plan or event. Directors and members can both post.
+        Team is org-wide. Plan and event threads are for directors and people assigned to that Sunday or event.
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">

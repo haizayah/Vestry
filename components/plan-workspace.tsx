@@ -292,7 +292,7 @@ export function PlanWorkspace({
           >
             <p className="field-label">Chat</p>
             <h2 className="font-serif text-2xl text-wine-deep">Plan thread</h2>
-            <p className="mt-2 text-sm text-ink-soft">Directors and members can post on this Sunday.</p>
+            <p className="mt-2 text-sm text-ink-soft">Directors and assigned members can post on this Sunday.</p>
           </Link>
         ) : null}
 

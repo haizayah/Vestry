@@ -4,6 +4,7 @@ import { deletePlanAction } from "@/lib/actions";
 import { getSession } from "@/lib/auth";
 import { formatPlanDate } from "@/lib/format";
 import { mediaReadyCount } from "@/lib/media";
+import { canAccessChatThread } from "@/lib/chat-access";
 import { hasModule } from "@/lib/modules";
 import { readStore } from "@/lib/store";
 import { BookResourceForm, ResourceBookingList } from "@/components/resource-bookings";
@@ -49,7 +50,10 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         people={store.people}
         user={session}
         assignmentConflicts={await computeAssignmentConflicts(plan.id)}
-        chatOn={hasModule(store.modules, "chat")}
+        chatOn={
+          hasModule(store.modules, "chat") &&
+          canAccessChatThread(store, session, { kind: "plan", planId: plan.id })
+        }
       />
       {hasModule(store.modules, "resources") ? (
         <section className="mt-10 space-y-4">
