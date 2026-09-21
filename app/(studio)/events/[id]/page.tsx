@@ -8,6 +8,7 @@ import { ReminderChip } from "@/components/reminder-chip";
 import { ReminderToggle } from "@/components/reminder-toggle";
 import { BookResourceForm, ResourceBookingList } from "@/components/resource-bookings";
 import { ModuleOffState } from "@/components/module-off-state";
+import { canAccessChatThread } from "@/lib/chat-access";
 import { chatHref } from "@/lib/chat";
 import { getSession } from "@/lib/auth";
 import { formatShortDate } from "@/lib/format";
@@ -60,11 +61,12 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
       {event.notes ? <p className="paper-card mt-6 rounded-3xl p-5 text-ink-soft">{event.notes}</p> : null}
 
-      {hasModule(store.modules, "chat") ? (
+      {hasModule(store.modules, "chat") &&
+      canAccessChatThread(store, session, { kind: "event", eventId: event.id }) ? (
         <Link href={chatHref({ kind: "event", eventId: event.id })} className="paper-card mt-4 block rounded-3xl p-5 transition hover:-translate-y-0.5">
           <p className="field-label">Chat</p>
           <h2 className="font-serif text-2xl text-wine-deep">Event thread</h2>
-          <p className="mt-2 text-sm text-ink-soft">Directors and members can post about this event.</p>
+          <p className="mt-2 text-sm text-ink-soft">Directors and assigned members can post about this event.</p>
         </Link>
       ) : null}
 

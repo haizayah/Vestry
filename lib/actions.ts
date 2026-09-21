@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { clearSessionCookie, requireRole, requireSession, setSessionCookie, toPublicUser } from "./auth";
 import { recordActivity } from "./activity";
+import { assertCanAccessChatThread } from "./chat-access";
 import { chatHref, threadTitle } from "./chat";
 import { hasModule, DEFAULT_CHURCH_MODULES, DEFAULT_SPORTS_MODULES, isOrgType, normalizeModules } from "./modules";
 import { parseRecurrenceFromForm } from "./recurrence";
@@ -577,13 +578,7 @@ export async function postChatAction(formData: FormData) {
   const eventId = String(formData.get("eventId") || "") || undefined;
 
   await updateStore((store) => {
-    if (!hasModule(store.modules, "chat")) throw new Error("Chat is off");
-    if (threadKind === "plan") {
-      if (!planId || !store.plans.some((plan) => plan.id === planId)) throw new Error("Plan not found");
-    }
-    if (threadKind === "event") {
-      if (!eventId || !store.events.some((event) => event.id === eventId)) throw new Error("Event not found");
-    }
+    assertCanAccessChatThread(store, session, { kind: threadKind, planId, eventId });
     store.messages.push({
       id: newId("msg"),
       threadKind,
