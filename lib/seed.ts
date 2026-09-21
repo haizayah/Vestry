@@ -10,6 +10,8 @@ export function createSeed(): StoreData {
     churchName: "Harbor Church",
     orgType: "church",
     modules: ["calendar", "people", "scheduling", "events", "worship"],
+    // Seed is already onboarded so the Harbor demo opens on Home. Reset demo data clears this.
+    onboardingCompletedAt: now,
     logoFilename: null,
     logoDataUrl: null,
     // Same strength as rotateIcalTokenAction. Reset demo issues a fresh token.

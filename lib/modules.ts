@@ -83,6 +83,16 @@ export function enabledModuleChips(modules: readonly ModuleId[]): { id: ModuleId
   }));
 }
 
+const OPTIONAL_HOME_CHIPS: ModuleId[] = ["worship", "chat", "resources"];
+
+/** Quiet Home chips for optional modules only — never styled as the default mode. */
+export function optionalHomeChips(modules: readonly ModuleId[]): { id: ModuleId; label: string }[] {
+  return OPTIONAL_HOME_CHIPS.filter((id) => hasModule(modules, id)).map((id) => ({
+    id,
+    label: MODULE_SHORT_LABELS[id],
+  }));
+}
+
 export function moduleOffTitle(id: ModuleId): string {
   return `${MODULE_SHORT_LABELS[id]} is off for this org`;
 }

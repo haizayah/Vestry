@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { readStore } from "@/lib/store";
 
 export const metadata: Metadata = { title: "Onboarding" };
+export const dynamic = "force-dynamic";
 
 export default async function OnboardingPage() {
   const session = await getSession();

@@ -60,6 +60,12 @@ function normalizeStore(data: StoreData): StoreData {
   if (needsIcalRotation(data.icalToken)) {
     data.icalToken = newId("ical");
   }
+  if (!Object.prototype.hasOwnProperty.call(data, "onboardingCompletedAt")) {
+    // Legacy stores predate the field — treat as completed so existing demos are not gated.
+    data.onboardingCompletedAt = "2026-09-06T12:00:00.000Z";
+  } else if (data.onboardingCompletedAt === undefined) {
+    data.onboardingCompletedAt = "2026-09-06T12:00:00.000Z";
+  }
   data.modules = normalizeModules(data.modules);
   return data;
 }
@@ -154,6 +160,8 @@ export async function updateStore<T>(fn: (store: StoreData) => T | Promise<T>): 
 
 export async function resetStore(): Promise<StoreData> {
   const seed = seedClone();
+  // Harbor seed is onboarded; Reset demo data always re-opens director onboarding.
+  seed.onboardingCompletedAt = null;
   memory = seed;
   await persist(seed);
   if (serverless()) {

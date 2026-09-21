@@ -21,7 +21,7 @@ export function OnboardingFlow({
   orgType: OrgType;
   modules: ModuleId[];
 }) {
-  const [step, setStep] = useState<0 | 1 | 2>(2);
+  const [step, setStep] = useState<0 | 1 | 2>(0);
   const [name, setName] = useState(orgName);
 
   return (

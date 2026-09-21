@@ -12,13 +12,13 @@ Vestry is an upgraded, editorial take on Planning Center Services — not a full
 
 - Marketing landing at `/`
 - Demo auth with persisted session (director + member)
-- Org type + modules (Calendar and People always on; Worship, Chat, and Resources optional). Directors toggle in Settings → Modules
+- Org type + modules (Calendar and People always on; Worship, Chat, and Resources optional). Directors toggle in Settings → Modules. Directors with `onboardingCompletedAt` null are gated to `/onboarding` until they Continue; members are never gated. The Harbor seed ships completed so the demo opens on Home. Reset demo data clears completion.
 - Module-aware shell: desktop sidebar + mobile dock / More. Plans and Songs hide when Worship is off (data stays)
 - Calendar month and week shells, plus member blockouts and warn-only assignment conflicts
 - Events with recurring create (weekly / biweekly / monthly). Occurrences expand server-side
 - Schedule home for assignments; Availability lockouts from #9
 - People roster at `/people` and `/people/[id]`
-- Adaptive Home: plan/media cards when Worship is on; event/assignment cards when off
+- Adaptive Home: greeting, quiet optional-module chips, director New event / New plan, Needs attention, mixed next-7-days peek (no Home-level order/media chips), activity feed
 - Song library CRUD and service plans when Worship is on
 - YouTube and uploaded audio play **in-app** on song and plan pages
 - Optional Chat (off by default): team channel plus a thread per plan or event
@@ -85,11 +85,11 @@ Runtime data:
 - Locally: `data/store.json` (created from seed on first read; gitignored) and `data/uploads/`
 - On Vercel: writes persist in a signed, gzipped store cookie (plus in-memory/`/tmp` on that instance). That is what keeps modules, chat, assignment replies, lockouts, and the sidebar logo across refresh when preview instances hop. Seed rehearsal audio lives at `data/uploads/harbor-rehearsal.wav` and is served only through the session-gated `/api/media/[filename]` route (included in the serverless bundle via `outputFileTracingIncludes`).
 
-Directors can restore Harbor Church from **Settings → Reset demo data**. Reset regenerates a fresh iCal subscribe token (same `newId("ical")` strength as **Rotate feed link**); any previous `/api/ical/…` URL, including the old `harbor-demo-ical` demo token, 404s.
+Directors can restore Harbor Church from **Settings → Reset demo data**. Reset regenerates a fresh iCal subscribe token (same `newId("ical")` strength as **Rotate feed link**); any previous `/api/ical/…` URL, including the old `harbor-demo-ical` demo token, 404s. Reset also clears `onboardingCompletedAt`, so the director is sent through `/onboarding` from Account (step 0). The Harbor seed itself ships with a completion timestamp so the existing demo is not gated on first load.
 
 ## Typical Sunday flow
 
-1. Sign in as **director**.
+1. Sign in as **director**. The Harbor seed is already onboarded, so you land on Home. After **Reset demo data**, you start onboarding at Account and must Continue (Harbor Church / Harbor FC presets do not skip).
 2. Settings → Modules (or `/onboarding`) to pick org type and modules. Use **Harbor FC (Sports)** to hide Worship.
 3. Create a plan when Worship is on, or a recurring event from Calendar when Events is on.
 4. Add songs from the library when Worship is on. Upload rehearsal audio — it plays on the song page and anywhere that song is on a setlist.

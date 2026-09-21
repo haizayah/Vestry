@@ -166,6 +166,8 @@ export type StoreData = {
   churchName: string;
   orgType: OrgType;
   modules: ModuleId[];
+  /** ISO timestamp when a director last finished onboarding. Null means directors are gated to `/onboarding`. */
+  onboardingCompletedAt: string | null;
   logoFilename: string | null;
   logoDataUrl: string | null;
   icalToken: string;
